@@ -8,6 +8,8 @@ This coding-agent is a TypeScript implementation of an autonomous agent framewor
 
 It designed to be simple and modular. Also it is meant to be a starting point for including it into your own projects. 
 
+[Hello-World Demo](https://static.stepanrutz.com/cagent.gif)
+
 Specialities include:
 
 - Add new tools in a modular way (see `src/tools/`)

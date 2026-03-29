@@ -31,7 +31,6 @@ function appendHistory(line: string, lines: string[]): void {
 	saveHistory(lines);
 }
 
-
 export interface Repl {
 	rl: readline.Interface;
 	historyLines: string[];

@@ -133,17 +133,20 @@ export async function command(context: AgentContext, task: string): Promise<bool
 		if (context.sessionFile) {
 			try {
 				const size = fs.statSync(context.sessionFile).size;
-				console.log(`\n  ${c.cyan}History file:${c.reset} ${context.sessionFile} (${formatSize(size)})`);
+				console.log(
+					`\n  ${c.cyan}History file:${c.reset} ${context.sessionFile} (${formatSize(size)})`,
+				);
 			} catch {
-				console.log(`\n  ${c.cyan}History file:${c.reset} ${context.sessionFile} (not yet written)`);
+				console.log(
+					`\n  ${c.cyan}History file:${c.reset} ${context.sessionFile} (not yet written)`,
+				);
 			}
 		} else if (context.history.length > 0) {
 			// Offer to save
 			const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 			const answer = await new Promise<string>((resolve) => {
-				rl.question(
-					`\n  ${c.yellow}No history file.${c.reset} Save current history? [Y/n] `,
-					(a) => resolve(a.trim()),
+				rl.question(`\n  ${c.yellow}No history file.${c.reset} Save current history? [Y/n] `, (a) =>
+					resolve(a.trim()),
 				);
 			});
 			rl.close();
