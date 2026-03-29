@@ -18,7 +18,7 @@ const DEFAULTS: Record<
 	},
 	openai: {
 		url: "https://api.openai.com/v1/chat/completions",
-		modelName: "gpt-4o",
+		modelName: "gpt-4.1",
 		noApiKey: false,
 		envVar: "CUSTOMAGENT_APIKEY_OPENAI",
 	},
@@ -48,7 +48,7 @@ export async function runSettingsWizard(): Promise<void> {
 	// 1. Pick provider
 	console.log(`${c.bold}Select a provider:${c.reset}`);
 	console.log(`  ${c.cyan}1${c.reset}) Anthropic (Claude)`);
-	console.log(`  ${c.cyan}2${c.reset}) OpenAI`);
+	console.log(`  ${c.cyan}2${c.reset}) OpenAI (GPT-4, etc., compatible with Azure and most LLMs)`);
 	console.log(`  ${c.cyan}3${c.reset}) Ollama (local)\n`);
 
 	let provider: ProviderChoice | undefined;

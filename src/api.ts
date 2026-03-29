@@ -8,7 +8,11 @@ let sessionInputTokens = 0;
 let sessionOutputTokens = 0;
 
 export function getSessionTokens() {
-	return { input: sessionInputTokens, output: sessionOutputTokens, total: sessionInputTokens + sessionOutputTokens };
+	return {
+		input: sessionInputTokens,
+		output: sessionOutputTokens,
+		total: sessionInputTokens + sessionOutputTokens,
+	};
 }
 
 export function resetSessionTokens() {
