@@ -242,9 +242,12 @@ async function main() {
 	const llm: LlmOptions = { model, provider, apiKey };
 
 	console.log(
-		`${c.bold}${c.magenta}◆ Custom-Agent${c.reset} by stepan.rutz / ${c.dim}Model: ${model.provider}: ${model.modelName}${c.reset}`,
+		`${c.bold}${c.magenta}◆ cagent${c.reset} by stepan.rutz / ${c.dim}Model: ${model.provider}: ${model.modelName}${c.reset}`,
 	);
 	console.log(`${c.dim}  workspace: ${WORKSPACE}${c.reset}`);
+	console.log(
+		`${c.dim}  Disclaimer: cagent may do harm if you are not careful. use at your own risk.${c.reset}`,
+	);
 	const dsn = getDsn();
 	if (dsn) {
 		console.log(`${c.dim}  database:  ${dsn}${c.reset}`);

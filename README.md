@@ -30,6 +30,10 @@ $HOME/.customagent/
 - `src/tools/` — directory for tool definitions and implementations
 
 
+## Disclaimer
+
+This project is provided "as is", without warranty of any kind, express or implied. It is not intended for production use. The agent executes shell commands, writes files, and interacts with external APIs on your behalf — always review its actions before approving them. The author assumes no responsibility for any damage, data loss, or unintended side effects caused by running this software. Use it at your own risk and in environments where you are comfortable with autonomous code execution.
+
 ## Author
 
 - **Name:** Stepan Rutz
