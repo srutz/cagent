@@ -1,0 +1,28 @@
+# Node.js
+node_modules/
+npm-debug.log*
+
+# TypeScript
+*.tsbuildinfo
+
+# Compiled output
+dist/
+
+# Environment variables
+.env
+
+# macOS specific
+.DS_Store
+
+# Logs
+*.log
+
+# Idea
+.idea
+
+.env
+.claude
+
+
+
+
