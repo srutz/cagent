@@ -1,9 +1,9 @@
 import { execSync } from "node:child_process";
 import { log } from "node:console";
+import { randomUUID } from "node:crypto";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import { randomUUID } from "node:crypto";
 import * as readline from "node:readline";
 import { getSessionTokens, type LlmOptions, toggleStream } from "./api";
 import { config } from "./config";

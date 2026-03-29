@@ -8,9 +8,9 @@ export type {
 	Message,
 	Role,
 	TextBlock,
+	TokenUsage,
 	Tool,
 	ToolResultBlock,
-	TokenUsage,
 	ToolUseBlock,
 } from "./types";
 
