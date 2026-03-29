@@ -1,4 +1,4 @@
-# Custom Agent
+# cagent - you custom and customizable agent.
 
 by stepan rutz ([https://stepanrutz.com](https://stepanrutz.com))
 
@@ -6,7 +6,7 @@ License is MIT. See [LICENSE](LICENSE) for details.
 
 This coding-agent is a TypeScript implementation of an autonomous agent framework that can interact with language models, execute tools, and perform tasks based on user input.
 
-It designed to be simple and modular. Also it is meant to be a starting point for including it into your own projects. 
+It designed to be simple and modular. Also it is meant to be a starting point for including it into your own projects. Think of shadcn approach and copy it into your projects, just like I do.
 
 ![Hello-World Demo](https://static.stepanrutz.com/cagent.gif)
 
