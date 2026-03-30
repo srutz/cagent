@@ -18,6 +18,10 @@ export function getMemoryPath() {
 	return `${getConfigDir()}/memory`;
 }
 
+export function getToolsPath() {
+	return `${getConfigDir()}/tools`;
+}
+
 let workspacePath = process.cwd();
 
 export function getWorkspacePath() {

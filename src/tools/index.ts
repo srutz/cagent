@@ -16,21 +16,32 @@ const definitions: ToolDefinition[] = [
 	query,
 ];
 
-export const TOOLS: Tool[] = definitions.map(({ name, description, input_schema }) => ({
-	name,
-	description,
-	input_schema,
-}));
+export function registerTool(tool: ToolDefinition): void {
+	const existing = definitions.findIndex((t) => t.name === tool.name);
+	if (existing >= 0) {
+		definitions[existing] = tool;
+	} else {
+		definitions.push(tool);
+	}
+}
 
-export function executeTool(
+export function getTools(): Tool[] {
+	return definitions.map(({ name, description, input_schema }) => ({
+		name,
+		description,
+		input_schema,
+	}));
+}
+
+export async function executeTool(
 	workspace: string,
 	name: string,
 	input: Record<string, unknown>,
-): string {
+): Promise<string> {
 	const tool = definitions.find((t) => t.name === name);
 	if (!tool) return `Error: unknown tool "${name}"`;
 	try {
-		return tool.execute(workspace, input);
+		return await tool.execute(workspace, input);
 	} catch (err: unknown) {
 		console.error("Tool execution error:", err);
 		return `Error: ${err instanceof Error ? err.message : String(err)}`;

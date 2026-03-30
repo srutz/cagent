@@ -1,7 +1,7 @@
 import type { Config, FileHandle, Model } from "./config";
 import { getWorkspacePath } from "./constants";
 import type { ApiResponse, LLMProvider, Message } from "./providers";
-import { TOOLS } from "./tools";
+import { getTools } from "./tools";
 import { c } from "./utils";
 
 const STREAMING_DEFAULT = true; // stream responses by default, but allow disabling for providers that support it
@@ -107,7 +107,7 @@ export async function callLlm(
 		model: model.modelName,
 		url: model.url,
 		system: systemPrompt,
-		tools: TOOLS,
+		tools: getTools(),
 		stream: useStream,
 	});
 

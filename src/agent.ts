@@ -33,6 +33,7 @@ import { getProvider, type Message, type ToolResultBlock } from "./providers";
 import { createRepl } from "./readlineutils";
 import { getConf, loadSystemConf } from "./systemconf";
 import { executeTool } from "./tools";
+import { loadExternalTools } from "./tools/loader";
 import { c, divider } from "./utils";
 import { checkForUpdate } from "./versioncheck";
 
@@ -45,6 +46,7 @@ const { values: args, positionals } = parseArgs({
 		session: { type: "string", short: "s" },
 		workspace: { type: "string", short: "w" },
 		dsn: { type: "string", short: "d" },
+		tools: { type: "string", short: "t", multiple: true },
 	},
 	allowPositionals: true,
 });
@@ -60,6 +62,9 @@ if (args.help) {
 	console.log(`  -w, --workspace <dir>  Set working directory (default: cwd)`);
 	console.log(
 		`  -d, --dsn <url>        PostgreSQL connection string (default: inherit PG* env vars)`,
+	);
+	console.log(
+		`  -t, --tools <path>     Load external tools from .js file or directory (repeatable)`,
 	);
 	console.log(`  -h, --help             Show this message`);
 	console.log();
@@ -186,7 +191,7 @@ async function runAgent(userMessage: string, history: Message[], llm: LlmOptions
 				console.log(`${c.yellow}${inputLines}${c.reset}`);
 
 				// Run it
-				const result = executeTool(WORKSPACE, name, input);
+				const result = await executeTool(WORKSPACE, name, input);
 
 				// Print result
 				console.log(`${c.gray}─ result ─${c.reset}`);
@@ -215,6 +220,7 @@ async function runAgent(userMessage: string, history: Message[], llm: LlmOptions
 
 async function main() {
 	const config = await loadConfig();
+	await loadExternalTools((args.tools as string[]) ?? []);
 	buildSystemPrompt(config);
 	loadSystemConf();
 
