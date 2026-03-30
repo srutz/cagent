@@ -39,7 +39,25 @@ This project is provided "as is", without warranty of any kind, express or impli
 - **Name:** Stepan Rutz
 - **Webpage:** [https://stepanrutz.com](https://stepanrutz.com)
 
-## Setup
+## Setup for users
+
+You must have node.js Version >= 22 installed. Then choose one of the following options:
+
+```
+# install globally with npm (you will be notified about updates. run `cagent` directly from the terminal)
+npm install -g https://github.com/srutz/cagent
+cagent "what tools you got"
+```
+
+
+```
+# run current version with npx without installing
+npx https://github.com/srutz/cagent
+```
+
+
+
+## Setup for developers
 
 ```bash
 npm install

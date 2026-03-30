@@ -6,6 +6,9 @@
   "author": "stepan.rutz",
   "type": "commonjs",
   "main": "/dist/agent.js",
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "bin": {
     "cagent": "dist/agent.js"
   },
