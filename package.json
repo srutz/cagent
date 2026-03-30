@@ -9,14 +9,11 @@
   "engines": {
     "node": ">=22.0.0"
   },
-  "files": [
-    "dist/"
-  ],
   "bin": {
     "cagent": "dist/agent.js"
   },
   "scripts": {
-    "prepare": "git config core.hooksPath .hooks || true",
+    "prepare": "./node_modules/.bin/tsc",
     "build": "tsc",
     "start": "node dist/agent.js",
     "dev": "npx tsx src/agent.ts",
