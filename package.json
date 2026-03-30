@@ -1,6 +1,6 @@
 {
   "name": "cagent",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "It writes code, runs it, reads the output, and iterates.",
   "license": "MIT",
   "author": "stepan.rutz",
@@ -17,8 +17,8 @@
     "cagent": "dist/agent.js"
   },
   "scripts": {
-    "prepublishOnly": "tsc",
-    "build": "tsc",
+    "prepublishOnly": "tsc && chmod +x dist/agent.js",
+    "build": "tsc && chmod +x dist/agent.js",
     "start": "node dist/agent.js",
     "dev": "npx tsx src/agent.ts",
     "check": "npx tsc --noEmit",
