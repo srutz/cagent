@@ -4,6 +4,8 @@ import type { ApiResponse, LLMProvider, Message } from "./providers";
 import { TOOLS } from "./tools";
 import { c } from "./utils";
 
+const STREAMING_DEFAULT = true; // stream responses by default, but allow disabling for providers that support it
+
 let sessionInputTokens = 0;
 let sessionOutputTokens = 0;
 
@@ -21,8 +23,7 @@ export function resetSessionTokens() {
 }
 
 let verbose = false;
-// To change the default streaming behavior, flip the fallback in `streamOverride ?? false`
-// (search for that expression in this file — it appears in toggleStream, getStreamEnabled, and callLlm).
+// To change the default streaming behavior,
 let streamOverride: boolean | undefined;
 
 export function setVerbose(v: boolean) {
@@ -34,13 +35,13 @@ export function setStream(enabled: boolean) {
 }
 
 export function toggleStream(): boolean {
-	const current = streamOverride ?? false;
+	const current = streamOverride ?? STREAMING_DEFAULT;
 	streamOverride = !current;
 	return streamOverride;
 }
 
 export function getStreamEnabled(): boolean {
-	return streamOverride ?? false;
+	return streamOverride ?? STREAMING_DEFAULT;
 }
 
 const BASE_SYSTEM_PROMPT = `You are an expert coding agent. When given a task:
@@ -89,7 +90,7 @@ export async function callLlm(
 	opts?: CallLlmOptions,
 ): Promise<ApiResponse> {
 	const { model, provider, apiKey } = llm;
-	const useStream = !model.preventStreaming && (streamOverride ?? false);
+	const useStream = !model.preventStreaming && (streamOverride ?? STREAMING_DEFAULT);
 
 	const request = provider.buildRequest(messages, {
 		apiKey,

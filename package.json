@@ -10,6 +10,7 @@
     "cagent": "dist/agent.js"
   },
   "scripts": {
+    "prepare": "tsc",
     "build": "tsc",
     "start": "node dist/agent.js",
     "dev": "npx tsx src/agent.ts",
