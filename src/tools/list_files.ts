@@ -6,13 +6,15 @@ const MAX_FILES = 200;
 const SKIP = new Set(["node_modules", ".git", "dist", "build", "out", ".next", "target", ".idea", ".vscode", "__pycache__", ".gradle", ".mvn"]);
 
 function matchGlob(filename: string, pattern: string): boolean {
-	// Simple glob: support * and ** wildcards
+	// If pattern has no path separators and no **, match against basename only
+	const matchAgainst =
+		!pattern.includes("/") && !pattern.includes("**") ? path.basename(filename) : filename;
 	const regex = pattern
 		.replace(/\./g, "\\.")
 		.replace(/\*\*/g, "\0")
 		.replace(/\*/g, "[^/]*")
 		.replace(/\0/g, ".*");
-	return new RegExp(`^${regex}$`).test(filename);
+	return new RegExp(`^${regex}$`, "i").test(matchAgainst);
 }
 
 const tool: ToolDefinition = {
