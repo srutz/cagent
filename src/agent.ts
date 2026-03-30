@@ -20,9 +20,11 @@ import {
 	buildSystemPrompt,
 	callLlm,
 	getSessionTokens,
+	getThinkingEnabled,
 	type LlmOptions,
 	setStream,
 	setVerbose,
+	toggleThinking,
 } from "./api";
 import { command } from "./commands";
 import { loadConfig } from "./config";
@@ -121,7 +123,9 @@ async function runAgent(userMessage: string, history: Message[], llm: LlmOptions
 
 	while (turns < MAX_TURNS) {
 		turns++;
-		process.stdout.write(`${c.dim}[thinking...]${c.reset}\r`);
+		if (getThinkingEnabled()) {
+			process.stdout.write(`${c.dim}[thinking...]${c.reset}\r`);
+		}
 
 		let streamStarted = false;
 		const response = await callLlm(history, llm, {
@@ -228,6 +232,10 @@ async function main() {
 	// Restore stream preference
 	const savedStream = getConf("stream");
 	if (savedStream === "on") setStream(true);
+
+	// Restore thinking preference (default: on)
+	const savedThinking = getConf("thinking");
+	if (savedThinking === "off") toggleThinking();
 
 	const provider = getProvider(model.provider);
 	const envKey = `CUSTOMAGENT_APIKEY_${model.provider.toUpperCase()}`;

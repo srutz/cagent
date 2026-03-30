@@ -5,7 +5,7 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import * as readline from "node:readline";
-import { getSessionTokens, type LlmOptions, toggleStream } from "./api";
+import { getSessionTokens, type LlmOptions, toggleStream, toggleThinking } from "./api";
 import { config } from "./config";
 import { getConfigDir, getMemoryPath, getSkillsPath } from "./constants";
 import { getProvider, type Message } from "./providers";
@@ -50,6 +50,7 @@ export async function command(context: AgentContext, task: string): Promise<bool
 		console.log(`  ${c.cyan}/exit${c.reset}          Exit the agent`);
 		console.log(`  ${c.cyan}/model${c.reset}         List models or switch: /model <key>`);
 		console.log(`  ${c.cyan}/stream${c.reset}        Toggle streaming on/off`);
+		console.log(`  ${c.cyan}/think${c.reset}         Toggle thinking display on/off`);
 		console.log(`  ${c.cyan}/status${c.reset}        Show session info, tokens, skills, memory`);
 		console.log(`  ${c.cyan}/clear${c.reset}         Clear conversation history`);
 		console.log(`  ${c.cyan}/history${c.reset}       Show conversation history`);
@@ -96,6 +97,14 @@ export async function command(context: AgentContext, task: string): Promise<bool
 		const enabled = toggleStream();
 		setConf("stream", enabled ? "on" : "off");
 		log("✓", c.green, `streaming ${enabled ? "on" : "off"}`);
+		context.repl.rl.prompt();
+		return true;
+	}
+
+	if (task === "/think") {
+		const enabled = toggleThinking();
+		setConf("thinking", enabled ? "on" : "off");
+		log("✓", c.green, `thinking display ${enabled ? "on" : "off"}`);
 		context.repl.rl.prompt();
 		return true;
 	}

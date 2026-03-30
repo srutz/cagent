@@ -25,6 +25,7 @@ export function resetSessionTokens() {
 let verbose = false;
 // To change the default streaming behavior,
 let streamOverride: boolean | undefined;
+let showThinking = true;
 
 export function setVerbose(v: boolean) {
 	verbose = v;
@@ -42,6 +43,15 @@ export function toggleStream(): boolean {
 
 export function getStreamEnabled(): boolean {
 	return streamOverride ?? STREAMING_DEFAULT;
+}
+
+export function toggleThinking(): boolean {
+	showThinking = !showThinking;
+	return showThinking;
+}
+
+export function getThinkingEnabled(): boolean {
+	return showThinking;
 }
 
 const BASE_SYSTEM_PROMPT = `You are an expert coding agent. When given a task:
