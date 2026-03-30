@@ -5,8 +5,7 @@ npm-debug.log*
 # TypeScript
 *.tsbuildinfo
 
-# Compiled output
-dist/
+# Compiled output (dist/ is committed for npx/git installs)
 
 # Environment variables
 .env

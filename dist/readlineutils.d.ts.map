@@ -1,0 +1,1 @@
+{"version":3,"file":"readlineutils.d.ts","sourceRoot":"","sources":["../src/readlineutils.ts"],"names":[],"mappings":"AAGA,OAAO,KAAK,QAAQ,MAAM,UAAU,CAAC;AA8BrC,MAAM,WAAW,IAAI;IACpB,EAAE,EAAE,QAAQ,CAAC,SAAS,CAAC;IACvB,YAAY,EAAE,MAAM,EAAE,CAAC;IACvB,aAAa,CAAC,IAAI,EAAE,MAAM,GAAG,IAAI,CAAC;CAClC;AAED,wBAAgB,UAAU,CAAC,MAAM,EAAE,MAAM,GAAG,IAAI,CAkB/C"}
