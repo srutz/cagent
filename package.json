@@ -9,11 +9,15 @@
   "engines": {
     "node": ">=22.0.0"
   },
+  "files": [
+    "dist/",
+    "package.json"
+  ],
   "bin": {
     "cagent": "dist/agent.js"
   },
   "scripts": {
-    "prepare": "node build.js",
+    "prepublishOnly": "tsc",
     "build": "tsc",
     "start": "node dist/agent.js",
     "dev": "npx tsx src/agent.ts",
