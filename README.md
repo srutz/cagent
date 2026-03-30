@@ -1,4 +1,4 @@
-# cagent - you custom and customizable agent.
+# cagent - your custom and customizable agent.
 
 by stepan rutz ([https://stepanrutz.com](https://stepanrutz.com))
 
