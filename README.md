@@ -45,7 +45,7 @@ You must have node.js Version >= 22 installed. Then choose one of the following 
 
 ```
 # install globally with npm (you will be notified about updates. run `cagent` directly from the terminal)
-npm install -g https://github.com/srutz/cagent
+npm install -g cagent
 cagent "what tools you got"
 ```
 
@@ -53,6 +53,13 @@ cagent "what tools you got"
 ```
 # run current version with npx without installing
 npx https://github.com/srutz/cagent
+```
+
+
+To uninstall the global version, run:
+
+```
+npm uninstall -g cagent
 ```
 
 
