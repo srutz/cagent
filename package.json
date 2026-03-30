@@ -13,7 +13,7 @@
     "cagent": "dist/agent.js"
   },
   "scripts": {
-    "postinstall": "node node_modules/typescript/bin/tsc",
+    "prepare": "node build.js",
     "build": "tsc",
     "start": "node dist/agent.js",
     "dev": "npx tsx src/agent.ts",
