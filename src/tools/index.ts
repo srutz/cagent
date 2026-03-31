@@ -27,8 +27,12 @@ export function registerTool(tool: ToolDefinition): void {
 	}
 }
 
+function isEnabled(tool: ToolDefinition): boolean {
+	return tool.enabled !== false;
+}
+
 export function getTools(): Tool[] {
-	return definitions.map(({ name, description, input_schema }) => ({
+	return definitions.filter(isEnabled).map(({ name, description, input_schema }) => ({
 		name,
 		description,
 		input_schema,
@@ -47,6 +51,7 @@ export async function executeTool(
 ): Promise<string> {
 	const tool = definitions.find((t) => t.name === name);
 	if (!tool) return `Error: unknown tool "${name}"`;
+	if (!isEnabled(tool)) return `Error: tool "${name}" is disabled`;
 	try {
 		return await tool.execute(workspace, input);
 	} catch (err: unknown) {

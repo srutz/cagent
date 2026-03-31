@@ -1,10 +1,12 @@
 import { execShell, formatResult } from "./agentexec";
 import type { ToolDefinition } from "./types";
 
+const MAX_LINES = 200;
+
 const tool: ToolDefinition = {
 	name: "browser",
 	confirmExec: false,
-	description: `Control a browser using agent-browser. Runs "agent-browser <command>" and returns the output.
+	description: `Control a browser using agent-browser. Runs "agent-browser <command>" and returns the output. Output is capped at ${MAX_LINES} lines — use "snapshot -i -s <selector>" to scope snapshots to a specific part of the page.
 
 Workflow: open a URL, take a snapshot to get element refs (@e1, @e2, ...), then interact using those refs. Always re-snapshot after navigation or DOM changes since refs are invalidated.
 
@@ -53,7 +55,11 @@ Use --session <name> at the end of any command for isolated sessions.`,
 	},
 	execute(_workspace, input) {
 		const command = input.command as string;
-		return formatResult(execShell(`agent-browser ${command}`, { timeout: 30_000 }));
+		const output = formatResult(execShell(`agent-browser ${command}`, { timeout: 30_000 }));
+		const lines = output.split("\n");
+		if (lines.length <= MAX_LINES) return output;
+		const truncated = lines.slice(0, MAX_LINES).join("\n");
+		return `${truncated}\n[… truncated ${lines.length - MAX_LINES} more lines — use "snapshot -i -s <selector>" to narrow scope]`;
 	},
 };
 

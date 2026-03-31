@@ -18,6 +18,7 @@ const ENGINES: { name: string; url: (q: string) => string }[] = [
 
 const tool: ToolDefinition = {
 	name: "web_search",
+	enabled: false,
 	description:
 		"Search the web for information. Tries multiple search engines (Google, Yandex, DuckDuckGo) and returns results from the first one that succeeds.",
 	input_schema: {
