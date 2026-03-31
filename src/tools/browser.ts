@@ -3,6 +3,7 @@ import type { ToolDefinition } from "./types";
 
 const tool: ToolDefinition = {
 	name: "browser",
+	confirmExec: false,
 	description: `Control a browser using agent-browser. Runs "agent-browser <command>" and returns the output.
 
 Workflow: open a URL, take a snapshot to get element refs (@e1, @e2, ...), then interact using those refs. Always re-snapshot after navigation or DOM changes since refs are invalidated.
@@ -45,8 +46,7 @@ Use --session <name> at the end of any command for isolated sessions.`,
 		properties: {
 			command: {
 				type: "string",
-				description:
-					"The agent-browser command to run (without the 'agent-browser' prefix)",
+				description: "The agent-browser command to run (without the 'agent-browser' prefix)",
 			},
 		},
 		required: ["command"],
