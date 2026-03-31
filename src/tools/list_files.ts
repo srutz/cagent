@@ -19,6 +19,7 @@ function matchGlob(filename: string, pattern: string): boolean {
 
 const tool: ToolDefinition = {
 	name: "list_files",
+	confirmExec: false,
 	description:
 		"List files in the workspace. Use 'directory' to scope to a subdirectory and 'pattern' to filter by glob (e.g. '*.java', '**/*.ts'). Returns at most 200 results. Always scope your request to the narrowest directory and/or pattern needed.",
 	input_schema: {

@@ -32,9 +32,9 @@ import { getDsn, getWorkspacePath, setDsn, setWorkspacePath } from "./constants"
 import { getProvider, type Message, type ToolResultBlock } from "./providers";
 import { createRepl } from "./readlineutils";
 import { getConf, loadSystemConf } from "./systemconf";
-import { executeTool } from "./tools";
+import { executeTool, shouldConfirm } from "./tools";
 import { loadExternalTools } from "./tools/loader";
-import { c, divider } from "./utils";
+import { c, divider, confirm } from "./utils";
 import { checkForUpdate } from "./versioncheck";
 
 // ─── CLI args ────────────────────────────────────────────────────────────────
@@ -189,6 +189,16 @@ async function runAgent(userMessage: string, history: Message[], llm: LlmOptions
 					.map((l) => `  ${l}`)
 					.join("\n");
 				console.log(`${c.yellow}${inputLines}${c.reset}`);
+
+				// Confirm before executing (unless tool opts out)
+				if (shouldConfirm(name) && !(await confirm(`Execute tool "${name}"?`))) {
+					toolResults.push({
+						type: "tool_result",
+						tool_use_id: id,
+						content: "Tool execution denied by user.",
+					});
+					continue;
+				}
 
 				// Run it
 				const result = await executeTool(WORKSPACE, name, input);

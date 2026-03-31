@@ -20,3 +20,17 @@ export function divider(label: string) {
 	console.log(`\n${c.dim}${line}${c.reset}`);
 	if (label) console.log(`${c.dim}  ${label}${c.reset}`);
 }
+
+export function confirm(question: string): Promise<boolean> {
+	return new Promise((resolve) => {
+		const rl = require("node:readline").createInterface({
+			input: process.stdin,
+			output: process.stdout,
+		});
+		rl.question(`${c.yellow}${question} [Y/n] ${c.reset}`, (answer: string) => {
+			rl.close();
+			const a = answer.trim().toLowerCase();
+			resolve(a === "" || a === "y" || a === "yes");
+		});
+	});
+}

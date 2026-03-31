@@ -35,6 +35,11 @@ export function getTools(): Tool[] {
 	}));
 }
 
+export function shouldConfirm(name: string): boolean {
+	const tool = definitions.find((t) => t.name === name);
+	return tool?.confirmExec !== false;
+}
+
 export async function executeTool(
 	workspace: string,
 	name: string,
