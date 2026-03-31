@@ -34,7 +34,7 @@ import { createRepl } from "./readlineutils";
 import { getConf, loadSystemConf } from "./systemconf";
 import { executeTool, shouldConfirm } from "./tools";
 import { loadExternalTools } from "./tools/loader";
-import { c, divider, confirm } from "./utils";
+import { c, confirm, divider } from "./utils";
 import { checkForUpdate } from "./versioncheck";
 
 // ─── CLI args ────────────────────────────────────────────────────────────────
@@ -272,7 +272,7 @@ async function main() {
 	await checkForUpdate(require("../package.json").version);
 	console.log(`${c.dim}  workspace: ${WORKSPACE}${c.reset}`);
 	console.log(
-		`${c.dim}  Disclaimer: cagent may do harm if you are not careful. use at your own risk.${c.reset}`,
+		`${c.dim}  Disclaimer: cagent may do dangerous harm if you are not careful. use at your own risk.${c.reset}`,
 	);
 	const dsn = getDsn();
 	if (dsn) {
