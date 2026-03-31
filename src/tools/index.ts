@@ -1,4 +1,5 @@
 import type { Tool } from "../providers";
+import browser from "./browser";
 import list_files from "./list_files";
 import query from "./query";
 import read_file from "./read_file";
@@ -14,6 +15,7 @@ const definitions: ToolDefinition[] = [
 	list_files,
 	web_search,
 	query,
+	browser,
 ];
 
 export function registerTool(tool: ToolDefinition): void {

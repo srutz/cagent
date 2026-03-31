@@ -1,4 +1,4 @@
-import { spawnSync } from "node:child_process";
+import { execShell, formatResult } from "./agentexec";
 import type { ToolDefinition } from "./types";
 
 const tool: ToolDefinition = {
@@ -17,21 +17,7 @@ const tool: ToolDefinition = {
 	},
 	execute(workspace, input) {
 		const cmd = input.command as string;
-		const result = spawnSync("bash", ["-c", cmd], {
-			cwd: workspace,
-			timeout: 15_000,
-			encoding: "utf8",
-		});
-		const stdout = result.stdout?.trim() ?? "";
-		const stderr = result.stderr?.trim() ?? "";
-		const code = result.status ?? -1;
-
-		let out = "";
-		if (stdout) out += stdout;
-		if (stderr) out += (out ? "\n--- stderr ---\n" : "") + stderr;
-		if (!out) out = "(no output)";
-		out += `\n[exit code: ${code}]`;
-		return out;
+		return formatResult(execShell(cmd, { cwd: workspace }));
 	},
 };
 

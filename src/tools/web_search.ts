@@ -1,3 +1,4 @@
+import { exec } from "./agentexec";
 import type { ToolDefinition } from "./types";
 
 const ENGINES: { name: string; url: (q: string) => string }[] = [
@@ -33,7 +34,6 @@ const tool: ToolDefinition = {
 		const query = input.query as string;
 		// execute is sync but we need async fetch — use a blocking approach
 		// by spawning a subprocess that runs the async search
-		const { spawnSync } = require("node:child_process");
 		const script = `
 			const ENGINES = ${JSON.stringify(ENGINES.map((e) => ({ name: e.name, url: e.url(query) })))};
 
@@ -77,14 +77,9 @@ const tool: ToolDefinition = {
 			}
 			main();
 		`;
-		const result = spawnSync("node", ["-e", script], {
-			timeout: 30_000,
-			encoding: "utf8",
-		});
-		const out = result.stdout?.trim() ?? "";
-		const err = result.stderr?.trim() ?? "";
-		if (out) return out;
-		if (err) return `Error: ${err}`;
+		const result = exec({ command: "node", args: ["-e", script], timeout: 30_000 });
+		if (result.stdout) return result.stdout;
+		if (result.stderr) return `Error: ${result.stderr}`;
 		return "Error: all search engines failed";
 	},
 };

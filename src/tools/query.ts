@@ -1,4 +1,4 @@
-import { spawnSync } from "node:child_process";
+import { exec } from "./agentexec";
 import { getDsn } from "../constants";
 import type { ToolDefinition } from "./types";
 
@@ -20,18 +20,12 @@ const tool: ToolDefinition = {
 		const sql = input.sql as string;
 		const dsn = getDsn();
 		const psqlArgs = dsn ? [dsn, "-Atc", sql] : ["-Atc", sql];
-		const result = spawnSync("psql", psqlArgs, {
-			timeout: 15_000,
-			encoding: "utf8",
-		});
-		const stdout = result.stdout?.trim() ?? "";
-		const stderr = result.stderr?.trim() ?? "";
-		const code = result.status ?? -1;
+		const result = exec({ command: "psql", args: psqlArgs });
 
-		if (code !== 0 && stderr) {
-			return `Error: ${stderr}`;
+		if (result.exitCode !== 0 && result.stderr) {
+			return `Error: ${result.stderr}`;
 		}
-		return stdout || "(no rows)";
+		return result.stdout || "(no rows)";
 	},
 };
 
