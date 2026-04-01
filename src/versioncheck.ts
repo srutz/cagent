@@ -1,5 +1,5 @@
+import { c, output } from "./output";
 import { getConf, setConf } from "./systemconf";
-import { c } from "./utils";
 
 const REPO_URL = "https://raw.githubusercontent.com/srutz/cagent/main/package.json";
 const CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000; // 1 day
@@ -15,8 +15,8 @@ export async function checkForUpdate(currentVersion: string) {
 		if (!res.ok) return;
 		const pkg = (await res.json()) as { version: string };
 		if (pkg.version && pkg.version !== currentVersion) {
-			console.log(`${c.yellow}  Update available: v${currentVersion} → v${pkg.version}${c.reset}`);
-			console.log(`${c.dim}  To update run: npm install -g cagent${c.reset}`);
+			output.writeln(`${c.yellow}  Update available: v${currentVersion} → v${pkg.version}${c.reset}`);
+			output.writeln(`${c.dim}  To update run: npm install -g cagent${c.reset}`);
 		}
 	} catch {
 		// silently ignore network errors

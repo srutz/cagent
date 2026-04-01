@@ -2,7 +2,7 @@ import type { Config, FileHandle, Model } from "./config";
 import { getWorkspacePath } from "./constants";
 import type { ApiResponse, LLMProvider, Message } from "./providers";
 import { getTools } from "./tools";
-import { c } from "./utils";
+import { c, output } from "./output";
 
 const STREAMING_DEFAULT = true; // stream responses by default, but allow disabling for providers that support it
 
@@ -112,12 +112,12 @@ export async function callLlm(
 	});
 
 	if (verbose) {
-		console.log(`${c.dim}[verbose] → ${model.url} (stream: ${useStream})${c.reset}`);
+		output.writeln(`${c.dim}[verbose] → ${model.url} (stream: ${useStream})${c.reset}`);
 		try {
 			const pretty = JSON.stringify(JSON.parse(request.body as string), null, 2);
-			console.log(`${c.dim}[verbose] request:\n${pretty}${c.reset}`);
+			output.writeln(`${c.dim}[verbose] request:\n${pretty}${c.reset}`);
 		} catch {
-			console.log(`${c.dim}[verbose] request: ${request.body}${c.reset}`);
+			output.writeln(`${c.dim}[verbose] request: ${request.body}${c.reset}`);
 		}
 	}
 
@@ -143,9 +143,9 @@ export async function callLlm(
 		if (verbose) {
 			try {
 				const pretty = JSON.stringify(response, null, 2);
-				console.log(`${c.dim}[verbose] response:\n${pretty}${c.reset}`);
+				output.writeln(`${c.dim}[verbose] response:\n${pretty}${c.reset}`);
 			} catch {
-				console.log(`${c.dim}[verbose] response: ${response}${c.reset}`);
+				output.writeln(`${c.dim}[verbose] response: ${response}${c.reset}`);
 			}
 		}
 
@@ -157,9 +157,9 @@ export async function callLlm(
 	if (verbose) {
 		try {
 			const pretty = JSON.stringify(raw, null, 2);
-			console.log(`${c.dim}[verbose] response:\n${pretty}${c.reset}`);
+			output.writeln(`${c.dim}[verbose] response:\n${pretty}${c.reset}`);
 		} catch {
-			console.log(`${c.dim}[verbose] response: ${raw}${c.reset}`);
+			output.writeln(`${c.dim}[verbose] response: ${raw}${c.reset}`);
 		}
 	}
 

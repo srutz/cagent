@@ -1,6 +1,7 @@
 import { promises as fs } from "node:fs";
 import { z } from "zod";
 import { getMemoryPath, getSettingsFilePath, getSkillsPath } from "./constants";
+import { output } from "./output";
 import { runSettingsWizard } from "./settingswizard.js";
 
 // Zod schemas
@@ -47,8 +48,8 @@ async function loadMarkdownDir(dir: string): Promise<FileHandle[]> {
 		return results;
 	} catch (error) {
 		if (error && typeof error === "object" && "code" in error && error.code !== "ENOENT") {
-			console.warn(`⚠️  Warning: Error reading ${dir}:`);
-			console.warn(`   ${error instanceof Error ? error.message : String(error)}`);
+			output.warn(`⚠️  Warning: Error reading ${dir}:`);
+			output.warn(`   ${error instanceof Error ? error.message : String(error)}`);
 		}
 		return [];
 	}
@@ -68,8 +69,8 @@ export async function loadConfig(): Promise<Config> {
 		try {
 			settingsJson = JSON.parse(settingsContent);
 		} catch (parseError) {
-			console.error(`❌ Error parsing settings.json at ${getSettingsFilePath()}:`);
-			console.error(
+			output.error(`❌ Error parsing settings.json at ${getSettingsFilePath()}:`);
+			output.error(
 				`   Invalid JSON syntax: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
 			);
 			process.exit(1);
@@ -77,10 +78,10 @@ export async function loadConfig(): Promise<Config> {
 
 		const parseResult = SettingsSchema.safeParse(settingsJson);
 		if (!parseResult.success) {
-			console.error("❌ Error validating settings.json:");
-			console.error("   The settings file does not match the expected schema:");
+			output.error("❌ Error validating settings.json:");
+			output.error("   The settings file does not match the expected schema:");
 			for (const issue of parseResult.error.issues) {
-				console.error(`   - ${issue.path.join(".")}: ${issue.message}`);
+				output.error(`   - ${issue.path.join(".")}: ${issue.message}`);
 			}
 			process.exit(1);
 		}

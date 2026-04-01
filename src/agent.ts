@@ -12,7 +12,6 @@
  *   ./agent.ts "sort a list of numbers in perl"  (one-shot)
  */
 
-import { log } from "node:console";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { parseArgs } from "node:util";
@@ -29,12 +28,12 @@ import {
 import { command } from "./commands";
 import { loadConfig } from "./config";
 import { getDsn, getWorkspacePath, setDsn, setWorkspacePath } from "./constants";
+import { c, output } from "./output";
 import { getProvider, type Message, type ToolResultBlock } from "./providers";
 import { createRepl } from "./readlineutils";
 import { getConf, loadSystemConf } from "./systemconf";
 import { executeTool, shouldConfirm } from "./tools";
 import { loadExternalTools } from "./tools/loader";
-import { c, confirm, divider } from "./utils";
 import { checkForUpdate } from "./versioncheck";
 
 // ─── CLI args ────────────────────────────────────────────────────────────────
@@ -52,30 +51,30 @@ const { values: args, positionals } = parseArgs({
 });
 
 if (args.help) {
-	console.log(`${c.bold}cagent${c.reset} — a coding agent by ${c.magenta}stepan.rutz${c.reset}`);
-	console.log();
-	console.log(`Usage: cagent [options] [task]`);
-	console.log();
-	console.log(`Options:`);
-	console.log(`  -v, --verbose          Log API requests and responses`);
-	console.log(`  -s, --session <file>   Persist/restore conversation history`);
-	console.log(`  -w, --workspace <dir>  Set working directory (default: cwd)`);
-	console.log(
+	output.writeln(`${c.bold}cagent${c.reset} — a coding agent by ${c.magenta}stepan.rutz${c.reset}`);
+	output.writeln();
+	output.writeln(`Usage: cagent [options] [task]`);
+	output.writeln();
+	output.writeln(`Options:`);
+	output.writeln(`  -v, --verbose          Log API requests and responses`);
+	output.writeln(`  -s, --session <file>   Persist/restore conversation history`);
+	output.writeln(`  -w, --workspace <dir>  Set working directory (default: cwd)`);
+	output.writeln(
 		`  -d, --dsn <url>        PostgreSQL connection string (default: inherit PG* env vars)`,
 	);
-	console.log(
+	output.writeln(
 		`  -t, --tools <path>     Load external tools from .js file or directory (repeatable)`,
 	);
-	console.log(`  -h, --help             Show this message`);
-	console.log();
-	console.log(`Use /help inside the REPL for interactive commands.`);
+	output.writeln(`  -h, --help             Show this message`);
+	output.writeln();
+	output.writeln(`Use /help inside the REPL for interactive commands.`);
 	process.exit(0);
 }
 
 if (args.workspace) {
 	const resolved = path.resolve(args.workspace);
 	if (!fs.existsSync(resolved)) {
-		console.error(`${c.red}workspace not found: ${resolved}${c.reset}`);
+		output.error(`${c.red}workspace not found: ${resolved}${c.reset}`);
 		process.exit(1);
 	}
 	setWorkspacePath(resolved);
@@ -129,7 +128,7 @@ async function runAgent(userMessage: string, history: Message[], llm: LlmOptions
 	while (turns < MAX_TURNS) {
 		turns++;
 		if (getThinkingEnabled()) {
-			process.stdout.write(`${c.dim}[thinking...]${c.reset}\r`);
+			output.write(`${c.dim}[thinking...]${c.reset}\r`);
 		}
 
 		let streamStarted = false;
@@ -137,20 +136,20 @@ async function runAgent(userMessage: string, history: Message[], llm: LlmOptions
 			onText(text) {
 				if (!streamStarted) {
 					// Clear thinking indicator and print header
-					process.stdout.write(`\x1b[2K\r`);
-					log("◆ agent", c.cyan, "");
+					output.clearLine();
+					output.log("◆ agent", c.cyan, "");
 					streamStarted = true;
 				}
-				process.stdout.write(text);
+				output.write(text);
 			},
 		});
 
 		// Clear the thinking indicator (in case no streaming happened)
 		if (!streamStarted) {
-			process.stdout.write(`\x1b[2K\r`);
+			output.clearLine();
 		} else {
 			// End the streamed line
-			console.log();
+			output.writeln();
 		}
 
 		const tokenStr = formatTokens();
@@ -162,12 +161,12 @@ async function runAgent(userMessage: string, history: Message[], llm: LlmOptions
 		if (!streamStarted) {
 			for (const block of response.content) {
 				if (block.type === "text" && block.text.trim()) {
-					log(`◆ agent ${tokenStr}`, c.cyan, "");
-					console.log(block.text.trim());
+					output.log(`◆ agent ${tokenStr}`, c.cyan, "");
+					output.writeln(block.text.trim());
 				}
 			}
 		} else if (tokenStr) {
-			console.log(`${c.cyan}◆${c.reset} ${tokenStr}`);
+			output.writeln(`${c.cyan}◆${c.reset} ${tokenStr}`);
 		}
 
 		// Done?
@@ -183,15 +182,15 @@ async function runAgent(userMessage: string, history: Message[], llm: LlmOptions
 				const { id, name, input } = block;
 
 				// Pretty-print the tool call
-				divider(`tool: ${name}`);
+				output.divider(`tool: ${name}`);
 				const inputLines = JSON.stringify(input, null, 2)
 					.split("\n")
 					.map((l) => `  ${l}`)
 					.join("\n");
-				console.log(`${c.yellow}${inputLines}${c.reset}`);
+				output.writeln(`${c.yellow}${inputLines}${c.reset}`);
 
 				// Confirm before executing (unless tool opts out)
-				if (shouldConfirm(name) && !(await confirm(`Execute tool "${name}"?`))) {
+				if (shouldConfirm(name) && !(await output.confirm(`Execute tool "${name}"?`))) {
 					toolResults.push({
 						type: "tool_result",
 						tool_use_id: id,
@@ -204,9 +203,9 @@ async function runAgent(userMessage: string, history: Message[], llm: LlmOptions
 				const result = await executeTool(WORKSPACE, name, input);
 
 				// Print result
-				console.log(`${c.gray}─ result ─${c.reset}`);
+				output.writeln(`${c.gray}─ result ─${c.reset}`);
 				result.split("\n").forEach((line) => {
-					console.log(`${c.green}  ${line}${c.reset}`);
+					output.writeln(`${c.green}  ${line}${c.reset}`);
 				});
 
 				toolResults.push({ type: "tool_result", tool_use_id: id, content: result });
@@ -222,7 +221,7 @@ async function runAgent(userMessage: string, history: Message[], llm: LlmOptions
 	}
 
 	if (turns >= MAX_TURNS) {
-		log("⚠ agent", c.yellow, `Hit max turns (${MAX_TURNS}). Stopping.`);
+		output.log("⚠ agent", c.yellow, `Hit max turns (${MAX_TURNS}). Stopping.`);
 	}
 }
 
@@ -241,7 +240,7 @@ async function main() {
 		config.settings.models[0];
 
 	if (!model) {
-		console.error(`${c.red}Error: No models configured in settings.json.${c.reset}`);
+		output.error(`${c.red}Error: No models configured in settings.json.${c.reset}`);
 		process.exit(1);
 	}
 
@@ -258,7 +257,7 @@ async function main() {
 	const apiKey = process.env[envKey] ?? "";
 
 	if (!apiKey && !model.noApiKey) {
-		console.error(
+		output.error(
 			`${c.red}Error: API key not set.${c.reset}\n` + `  Set ${envKey} in your environment`,
 		);
 		process.exit(1);
@@ -266,38 +265,38 @@ async function main() {
 
 	const llm: LlmOptions = { model, provider, apiKey };
 
-	console.log(
+	output.writeln(
 		`${c.bold}${c.magenta}◆ cagent v${require("../package.json").version}${c.reset} by stepan.rutz / ${c.dim}Model: ${model.provider}: ${model.modelName}${c.reset}`,
 	);
 	await checkForUpdate(require("../package.json").version);
-	console.log(`${c.dim}  workspace: ${WORKSPACE}${c.reset}`);
-	console.log(
+	output.writeln(`${c.dim}  workspace: ${WORKSPACE}${c.reset}`);
+	output.writeln(
 		`${c.dim}  Disclaimer: cagent may do dangerous harm if you are not careful. use at your own risk.${c.reset}`,
 	);
 	const dsn = getDsn();
 	if (dsn) {
-		console.log(`${c.dim}  database:  ${dsn}${c.reset}`);
+		output.writeln(`${c.dim}  database:  ${dsn}${c.reset}`);
 	} else if (process.env.PGDATABASE) {
-		console.log(`${c.dim}  database:  ${process.env.PGDATABASE} (from PG* env vars)${c.reset}`);
+		output.writeln(`${c.dim}  database:  ${process.env.PGDATABASE} (from PG* env vars)${c.reset}`);
 	}
 
 	const history: Message[] = loadSession();
 	if (sessionFile && history.length > 0) {
-		console.log(`${c.dim}  restored ${history.length} messages from ${sessionFile}${c.reset}`);
+		output.writeln(`${c.dim}  restored ${history.length} messages from ${sessionFile}${c.reset}`);
 	}
 
 	// One-shot mode: argument passed directly
 	const oneShot = positionals.join(" ").trim();
 	if (oneShot) {
-		console.log(`\n${c.dim}task: ${oneShot}${c.reset}\n`);
+		output.writeln(`\n${c.dim}task: ${oneShot}${c.reset}\n`);
 		await runAgent(oneShot, history, llm);
 		saveSession(history);
-		console.log(`\n${c.dim}done.${c.reset}\n`);
+		output.writeln(`\n${c.dim}done.${c.reset}\n`);
 		return;
 	}
 
 	// Interactive REPL
-	console.log(`${c.dim}  Agentloop running. Ctrl+C to exit. /help for commands.\n${c.reset}`);
+	output.writeln(`${c.dim}  Agentloop running. Ctrl+C to exit. /help for commands.\n${c.reset}`);
 
 	const repl = createRepl(`${c.magenta}you > ${c.reset}`);
 
@@ -329,16 +328,16 @@ async function main() {
 			await runAgent(task, history, llm);
 			saveSession(history);
 		} catch (err) {
-			log("✗ error", c.red, String(err));
+			output.log("✗ error", c.red, String(err));
 		}
-		console.log();
+		output.writeln();
 		repl.rl.prompt();
 	}
 
-	console.log(`\n${c.dim}bye.${c.reset}\n`);
+	output.writeln(`\n${c.dim}bye.${c.reset}\n`);
 }
 
 main().catch((err) => {
-	console.error(`${c.red}Fatal: ${err.message}${c.reset}`);
+	output.error(`${c.red}Fatal: ${err.message}${c.reset}`);
 	process.exit(1);
 });

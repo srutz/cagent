@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { getToolsPath } from "../constants";
-import { c } from "../utils";
+import { c, output } from "../output";
 import { registerTool } from "./index";
 import type { ToolDefinition } from "./types";
 
@@ -16,14 +16,14 @@ async function loadToolFromFile(filePath: string): Promise<ToolDefinition | null
 		const tool: ToolDefinition = module.default ?? module;
 
 		if (!tool.name || !tool.description || !tool.input_schema || !tool.execute) {
-			console.warn(
+			output.warn(
 				`${c.yellow}⚠ Skipping ${filePath}: missing required fields (name, description, input_schema, execute)${c.reset}`,
 			);
 			return null;
 		}
 		return tool;
 	} catch (err) {
-		console.warn(
+		output.warn(
 			`${c.yellow}⚠ Failed to load tool from ${filePath}: ${err instanceof Error ? err.message : String(err)}${c.reset}`,
 		);
 		return null;
@@ -44,7 +44,7 @@ async function loadToolsFromDir(dir: string): Promise<ToolDefinition[]> {
 		}
 	} catch (err) {
 		if (err && typeof err === "object" && "code" in err && err.code !== "ENOENT") {
-			console.warn(
+			output.warn(
 				`${c.yellow}⚠ Error reading tools dir ${dir}: ${err instanceof Error ? err.message : String(err)}${c.reset}`,
 			);
 		}
@@ -77,18 +77,18 @@ export async function loadExternalTools(extraPaths: string[] = []): Promise<void
 			const tool = await loadToolFromFile(resolved);
 			tools = tool ? [tool] : [];
 		} else {
-			console.warn(`${c.yellow}⚠ Skipping ${resolved}: not a .js file or directory${c.reset}`);
+			output.warn(`${c.yellow}⚠ Skipping ${resolved}: not a .js file or directory${c.reset}`);
 			continue;
 		}
 
 		for (const tool of tools) {
 			registerTool(tool);
 			loaded++;
-			console.log(`${c.dim}  loaded tool: ${tool.name} (from ${resolved})${c.reset}`);
+			output.writeln(`${c.dim}  loaded tool: ${tool.name} (from ${resolved})${c.reset}`);
 		}
 	}
 
 	if (loaded > 0) {
-		console.log(`${c.dim}  ${loaded} external tool(s) loaded${c.reset}`);
+		output.writeln(`${c.dim}  ${loaded} external tool(s) loaded${c.reset}`);
 	}
 }

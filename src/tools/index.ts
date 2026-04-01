@@ -1,3 +1,4 @@
+import { output } from "../output";
 import type { Tool } from "../providers";
 import browser from "./browser";
 import list_files from "./list_files";
@@ -55,7 +56,7 @@ export async function executeTool(
 	try {
 		return await tool.execute(workspace, input);
 	} catch (err: unknown) {
-		console.error("Tool execution error:", err);
+		output.error(`Tool execution error: ${err instanceof Error ? err.message : String(err)}`);
 		return `Error: ${err instanceof Error ? err.message : String(err)}`;
 	}
 }
