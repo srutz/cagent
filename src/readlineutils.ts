@@ -7,7 +7,7 @@ const HISTORY_DIR = path.join(os.homedir(), ".customagent");
 const HISTORY_FILE = path.join(HISTORY_DIR, "readline.history");
 const MAX_HISTORY = 500;
 
-function loadHistory(): string[] {
+export function loadHistory(): string[] {
 	try {
 		if (!fs.existsSync(HISTORY_FILE)) return [];
 		return fs
@@ -19,12 +19,12 @@ function loadHistory(): string[] {
 	}
 }
 
-function saveHistory(lines: string[]): void {
+export function saveHistory(lines: string[]): void {
 	fs.mkdirSync(HISTORY_DIR, { recursive: true });
 	fs.writeFileSync(HISTORY_FILE, lines.slice(-MAX_HISTORY).join("\n") + "\n", "utf8");
 }
 
-function appendHistory(line: string, lines: string[]): void {
+export function appendHistory(line: string, lines: string[]): void {
 	if (line && lines[lines.length - 1] !== line) {
 		lines.push(line);
 	}

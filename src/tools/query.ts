@@ -1,6 +1,6 @@
-import { exec } from "./agentexec";
-import { getDsn } from "../constants";
-import type { ToolDefinition } from "./types";
+import { exec } from "./agentexec.js";
+import { getDsn } from "../constants.js";
+import type { ToolDefinition } from "./types.js";
 
 const tool: ToolDefinition = {
 	name: "query",

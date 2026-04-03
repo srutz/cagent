@@ -1,5 +1,5 @@
-import { exec } from "./agentexec";
-import type { ToolDefinition } from "./types";
+import { exec } from "./agentexec.js";
+import type { ToolDefinition } from "./types.js";
 
 const ENGINES: { name: string; url: (q: string) => string }[] = [
 	{

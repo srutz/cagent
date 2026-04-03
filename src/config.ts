@@ -1,7 +1,7 @@
 import { promises as fs } from "node:fs";
 import { z } from "zod";
-import { getMemoryPath, getSettingsFilePath, getSkillsPath } from "./constants";
-import { output } from "./output";
+import { getMemoryPath, getSettingsFilePath, getSkillsPath } from "./constants.js";
+import { output } from "./output.js";
 import { runSettingsWizard } from "./settingswizard.js";
 
 // Zod schemas

@@ -1,5 +1,6 @@
 /**
  * @deprecated Import from "./output" instead.
  */
-export { c, output, Output } from "./output";
-export { output as default } from "./output";
+export { c, output, ConsoleOutput } from "./output.js";
+export type { IOutput } from "./output.js";
+export { output as default } from "./output.js";

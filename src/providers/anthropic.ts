@@ -1,5 +1,5 @@
-import { sseLines } from "./sse";
-import type { ApiResponse, ContentBlock, LLMProvider, LLMProviderOptions, Message } from "./types";
+import { sseLines } from "./sse.js";
+import type { ApiResponse, ContentBlock, LLMProvider, LLMProviderOptions, Message } from "./types.js";
 
 export const anthropicProvider: LLMProvider = {
 	buildRequest(messages: Message[], options: LLMProviderOptions): RequestInit {

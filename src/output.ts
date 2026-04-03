@@ -1,10 +1,13 @@
 /**
- * Centralized output class for cagent.
+ * Centralized output abstraction for cagent.
  *
- * All terminal output goes through this singleton so the agent can be
+ * All terminal output goes through the `output` singleton so the agent can be
  * embedded in other environments (e.g. Ink, web UI) by swapping the
- * implementation.
+ * implementation via `setOutput()`.
  */
+
+import * as readline from "node:readline";
+import { loadHistory, appendHistory, saveHistory } from "./readlineutils.js";
 
 export const c = {
 	reset: "\x1b[0m",
@@ -19,48 +22,74 @@ export const c = {
 	gray: "\x1b[90m",
 };
 
-export class Output {
-	/** Raw write without trailing newline. */
+/** Interface every output backend must implement. */
+export interface IOutput {
+	write(text: string): void;
+	writeln(text?: string): void;
+	error(text: string): void;
+	warn(text: string): void;
+	log(prefix: string, color: string, msg: string): void;
+	divider(label: string): void;
+	clearLine(): void;
+	confirm(question: string): Promise<boolean>;
+	/** Read a line of user input (with prompt and history). */
+	readLine(prompt: string): Promise<string>;
+}
+
+const MAX_HISTORY = 500;
+
+/** Console-based output (the default). */
+export class ConsoleOutput implements IOutput {
+	private rl: readline.Interface | null = null;
+	private historyLines: string[] = [];
+
+	private ensureRl(prompt: string): readline.Interface {
+		if (!this.rl) {
+			this.historyLines = loadHistory();
+			this.rl = readline.createInterface({
+				input: process.stdin,
+				output: process.stdout,
+				prompt,
+				history: this.historyLines.slice().reverse(),
+				historySize: MAX_HISTORY,
+			});
+		}
+		this.rl.setPrompt(prompt);
+		return this.rl;
+	}
 	write(text: string): void {
 		process.stdout.write(text);
 	}
 
-	/** Write a line (like console.log). Multiple args are joined by space. */
 	writeln(text = ""): void {
 		console.log(text);
 	}
 
-	/** Write to stderr (like console.error). */
 	error(text: string): void {
 		console.error(text);
 	}
 
-	/** Write a warning to stderr (like console.warn). */
 	warn(text: string): void {
 		console.warn(text);
 	}
 
-	/** Prefixed log line:  `<color><prefix></color> <msg>` */
 	log(prefix: string, color: string, msg: string): void {
 		console.log(`${color}${prefix}${c.reset} ${msg}`);
 	}
 
-	/** Print a horizontal divider with optional label. */
 	divider(label: string): void {
 		const line = "─".repeat(60);
 		console.log(`\n${c.dim}${line}${c.reset}`);
 		if (label) console.log(`${c.dim}  ${label}${c.reset}`);
 	}
 
-	/** Clear the current terminal line. */
 	clearLine(): void {
 		process.stdout.write(`\x1b[2K\r`);
 	}
 
-	/** Interactive yes/no confirmation prompt. */
 	confirm(question: string): Promise<boolean> {
 		return new Promise((resolve) => {
-			const rl = require("node:readline").createInterface({
+			const rl = readline.createInterface({
 				input: process.stdin,
 				output: process.stdout,
 			});
@@ -71,7 +100,27 @@ export class Output {
 			});
 		});
 	}
+
+	readLine(prompt: string): Promise<string> {
+		const rl = this.ensureRl(prompt);
+		return new Promise((resolve) => {
+			rl.prompt();
+			rl.once("line", (line: string) => {
+				const text = line.trim();
+				if (text) {
+					appendHistory(text, this.historyLines);
+				}
+				resolve(text);
+			});
+			rl.once("close", () => resolve("/exit"));
+		});
+	}
 }
 
 /** Default singleton instance — import this in all modules. */
-export const output = new Output();
+export let output: IOutput = new ConsoleOutput();
+
+/** Swap the global output backend (e.g. to InkOutput). */
+export function setOutput(impl: IOutput): void {
+	output = impl;
+}

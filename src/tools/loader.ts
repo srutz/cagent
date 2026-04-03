@@ -1,9 +1,9 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { getToolsPath } from "../constants";
-import { c, output } from "../output";
-import { registerTool } from "./index";
-import type { ToolDefinition } from "./types";
+import { getToolsPath } from "../constants.js";
+import { c, output } from "../output.js";
+import { registerTool } from "./index.js";
+import type { ToolDefinition } from "./types.js";
 
 /**
  * Dynamically load tool definitions from .js files.

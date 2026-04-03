@@ -1,8 +1,8 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as readline from "node:readline";
-import { getSettingsFilePath } from "./constants";
-import { c, output } from "./output";
+import { getSettingsFilePath } from "./constants.js";
+import { c, output } from "./output.js";
 
 type ProviderChoice = "anthropic" | "openai" | "ollama";
 

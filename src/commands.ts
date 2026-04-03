@@ -3,17 +3,14 @@ import { randomUUID } from "node:crypto";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import * as readline from "node:readline";
-import { getSessionTokens, type LlmOptions, toggleStream, toggleThinking } from "./api";
-import { config } from "./config";
-import { getConfigDir, getMemoryPath, getSkillsPath } from "./constants";
-import { c, output } from "./output";
-import { getProvider, type Message } from "./providers";
-import type { Repl } from "./readlineutils";
-import { setConf } from "./systemconf";
+import { getSessionTokens, type LlmOptions, toggleStream, toggleThinking } from "./api.js";
+import { config } from "./config.js";
+import { getConfigDir, getMemoryPath, getSkillsPath } from "./constants.js";
+import { c, output } from "./output.js";
+import { getProvider, type Message } from "./providers/index.js";
+import { setConf } from "./systemconf.js";
 
 export type AgentContext = {
-	repl: Repl;
 	history: Message[];
 	llm: LlmOptions;
 	sessionFile: string | undefined;
@@ -37,12 +34,6 @@ function formatSize(bytes: number): string {
 }
 
 export async function command(context: AgentContext, task: string): Promise<boolean> {
-	if (task === "/exit") {
-		context.repl.rl.close();
-		output.writeln(`\n${c.dim}bye.${c.reset}\n`);
-		process.exit(0);
-	}
-
 	if (task === "/help" || task === "/?") {
 		output.writeln(`\n${c.bold}Available commands:${c.reset}`);
 		output.writeln(`  ${c.cyan}/help${c.reset}, ${c.cyan}/?${c.reset}      Show this help message`);
@@ -55,7 +46,7 @@ export async function command(context: AgentContext, task: string): Promise<bool
 		output.writeln(`  ${c.cyan}/history${c.reset}       Show conversation history`);
 		output.writeln(`  ${c.cyan}/e${c.reset}             Open last response in $EDITOR`);
 		output.writeln(`  ${c.cyan}/p${c.reset}             Open last response in $PAGER\n`);
-		context.repl.rl.prompt();
+
 		return true;
 	}
 
@@ -88,7 +79,7 @@ export async function command(context: AgentContext, task: string): Promise<bool
 				}
 			}
 		}
-		context.repl.rl.prompt();
+
 		return true;
 	}
 
@@ -96,7 +87,7 @@ export async function command(context: AgentContext, task: string): Promise<bool
 		const enabled = toggleStream();
 		setConf("stream", enabled ? "on" : "off");
 		output.log("✓", c.green, `streaming ${enabled ? "on" : "off"}`);
-		context.repl.rl.prompt();
+
 		return true;
 	}
 
@@ -104,7 +95,7 @@ export async function command(context: AgentContext, task: string): Promise<bool
 		const enabled = toggleThinking();
 		setConf("thinking", enabled ? "on" : "off");
 		output.log("✓", c.green, `thinking display ${enabled ? "on" : "off"}`);
-		context.repl.rl.prompt();
+
 		return true;
 	}
 
@@ -151,14 +142,7 @@ export async function command(context: AgentContext, task: string): Promise<bool
 			}
 		} else if (context.history.length > 0) {
 			// Offer to save
-			const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-			const answer = await new Promise<string>((resolve) => {
-				rl.question(`\n  ${c.yellow}No history file.${c.reset} Save current history? [Y/n] `, (a) =>
-					resolve(a.trim()),
-				);
-			});
-			rl.close();
-			if (!answer || answer.toLowerCase() === "y") {
+			if (await output.confirm("No history file. Save current history?")) {
 				const dir = path.join(getConfigDir(), "historyfiles");
 				fs.mkdirSync(dir, { recursive: true });
 				const file = path.join(dir, `${randomUUID()}.json`);
@@ -171,21 +155,21 @@ export async function command(context: AgentContext, task: string): Promise<bool
 		}
 
 		output.writeln();
-		context.repl.rl.prompt();
+
 		return true;
 	}
 
 	if (task === "/clear") {
 		context.history.length = 0;
 		output.log("✓", c.green, "conversation history cleared");
-		context.repl.rl.prompt();
+
 		return true;
 	}
 
 	if (task === "/history") {
 		if (context.history.length === 0) {
 			output.log("✗", c.red, "no history yet");
-			context.repl.rl.prompt();
+	
 			return true;
 		}
 		const lines: string[] = [];
@@ -219,7 +203,7 @@ export async function command(context: AgentContext, task: string): Promise<bool
 		} else {
 			output.writeln(text);
 		}
-		context.repl.rl.prompt();
+
 		return true;
 	}
 
@@ -227,7 +211,7 @@ export async function command(context: AgentContext, task: string): Promise<bool
 		const lastAssistant = [...context.history].reverse().find((m) => m.role === "assistant");
 		if (!lastAssistant) {
 			output.log("✗", c.red, "no assistant response yet");
-			context.repl.rl.prompt();
+	
 			return true;
 		}
 		const text = lastAssistant.content
@@ -236,7 +220,7 @@ export async function command(context: AgentContext, task: string): Promise<bool
 			.join("\n");
 		if (!text.trim()) {
 			output.log("✗", c.red, "last response has no text content");
-			context.repl.rl.prompt();
+	
 			return true;
 		}
 		const tmpFile = path.join(os.tmpdir(), `customagent-response-${Date.now()}.md`);
@@ -249,7 +233,7 @@ export async function command(context: AgentContext, task: string): Promise<bool
 		} finally {
 			fs.rmSync(tmpFile, { force: true });
 		}
-		context.repl.rl.prompt();
+
 		return true;
 	}
 

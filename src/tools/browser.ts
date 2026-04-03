@@ -1,5 +1,5 @@
-import { execShell, formatResult } from "./agentexec";
-import type { ToolDefinition } from "./types";
+import { execShell, formatResult } from "./agentexec.js";
+import type { ToolDefinition } from "./types.js";
 
 const MAX_LINES = 200;
 

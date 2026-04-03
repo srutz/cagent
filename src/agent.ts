@@ -13,8 +13,11 @@
  */
 
 import * as fs from "node:fs";
+import { createRequire } from "node:module";
 import * as path from "node:path";
 import { parseArgs } from "node:util";
+
+const require = createRequire(import.meta.url);
 import {
 	buildSystemPrompt,
 	callLlm,
@@ -24,17 +27,17 @@ import {
 	setStream,
 	setVerbose,
 	toggleThinking,
-} from "./api";
-import { command } from "./commands";
-import { loadConfig } from "./config";
-import { getDsn, getWorkspacePath, setDsn, setWorkspacePath } from "./constants";
-import { c, output } from "./output";
-import { getProvider, type Message, type ToolResultBlock } from "./providers";
-import { createRepl } from "./readlineutils";
-import { getConf, loadSystemConf } from "./systemconf";
-import { executeTool, shouldConfirm } from "./tools";
-import { loadExternalTools } from "./tools/loader";
-import { checkForUpdate } from "./versioncheck";
+} from "./api.js";
+import { command } from "./commands.js";
+import { loadConfig } from "./config.js";
+import { getDsn, getWorkspacePath, setDsn, setWorkspacePath } from "./constants.js";
+import { c, output, setOutput } from "./output.js";
+import { createInkOutput } from "./inkoutput.js";
+import { getProvider, type Message, type ToolResultBlock } from "./providers/index.js";
+import { getConf, loadSystemConf } from "./systemconf.js";
+import { executeTool, shouldConfirm } from "./tools/index.js";
+import { loadExternalTools } from "./tools/loader.js";
+import { checkForUpdate } from "./versioncheck.js";
 
 // ─── CLI args ────────────────────────────────────────────────────────────────
 
@@ -46,6 +49,7 @@ const { values: args, positionals } = parseArgs({
 		workspace: { type: "string", short: "w" },
 		dsn: { type: "string", short: "d" },
 		tools: { type: "string", short: "t", multiple: true },
+		ink: { type: "boolean", default: false },
 	},
 	allowPositionals: true,
 });
@@ -65,10 +69,15 @@ if (args.help) {
 	output.writeln(
 		`  -t, --tools <path>     Load external tools from .js file or directory (repeatable)`,
 	);
+	output.writeln(`      --ink               Use Ink (React) terminal UI`);
 	output.writeln(`  -h, --help             Show this message`);
 	output.writeln();
 	output.writeln(`Use /help inside the REPL for interactive commands.`);
 	process.exit(0);
+}
+
+if (args.ink) {
+	setOutput(createInkOutput());
 }
 
 if (args.workspace) {
@@ -298,20 +307,14 @@ async function main() {
 	// Interactive REPL
 	output.writeln(`${c.dim}  Agentloop running. Ctrl+C to exit. /help for commands.\n${c.reset}`);
 
-	const repl = createRepl(`${c.magenta}you > ${c.reset}`);
+	const prompt = `${c.magenta}you > ${c.reset}`;
 
-	repl.rl.prompt();
+	while (true) {
+		const task = await output.readLine(prompt);
+		if (!task) continue;
+		if (task === "/exit") break;
 
-	for await (const line of repl.rl) {
-		const task = line.trim();
-		if (!task) {
-			repl.rl.prompt();
-			continue;
-		}
-
-		repl.appendHistory(task);
 		const ctx = {
-			repl,
 			history,
 			llm,
 			sessionFile,
@@ -323,7 +326,6 @@ async function main() {
 			continue;
 		}
 
-		//console.log();
 		try {
 			await runAgent(task, history, llm);
 			saveSession(history);
@@ -331,7 +333,6 @@ async function main() {
 			output.log("✗ error", c.red, String(err));
 		}
 		output.writeln();
-		repl.rl.prompt();
 	}
 
 	output.writeln(`\n${c.dim}bye.${c.reset}\n`);

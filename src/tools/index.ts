@@ -1,13 +1,13 @@
-import { output } from "../output";
-import type { Tool } from "../providers";
-import browser from "./browser";
-import list_files from "./list_files";
-import query from "./query";
-import read_file from "./read_file";
-import run_command from "./run_command";
-import type { ToolDefinition } from "./types";
-import web_search from "./web_search";
-import write_file from "./write_file";
+import { output } from "../output.js";
+import type { Tool } from "../providers/index.js";
+import browser from "./browser.js";
+import list_files from "./list_files.js";
+import query from "./query.js";
+import read_file from "./read_file.js";
+import run_command from "./run_command.js";
+import type { ToolDefinition } from "./types.js";
+import web_search from "./web_search.js";
+import write_file from "./write_file.js";
 
 const definitions: ToolDefinition[] = [
 	write_file,
@@ -61,4 +61,4 @@ export async function executeTool(
 	}
 }
 
-export type { ToolDefinition } from "./types";
+export type { ToolDefinition } from "./types.js";

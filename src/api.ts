@@ -1,8 +1,8 @@
-import type { Config, FileHandle, Model } from "./config";
-import { getWorkspacePath } from "./constants";
-import type { ApiResponse, LLMProvider, Message } from "./providers";
-import { getTools } from "./tools";
-import { c, output } from "./output";
+import type { Config, FileHandle, Model } from "./config.js";
+import { getWorkspacePath } from "./constants.js";
+import type { ApiResponse, LLMProvider, Message } from "./providers/index.js";
+import { getTools } from "./tools/index.js";
+import { c, output } from "./output.js";
 
 const STREAMING_DEFAULT = true; // stream responses by default, but allow disabling for providers that support it
 

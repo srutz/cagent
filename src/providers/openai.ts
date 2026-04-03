@@ -1,4 +1,4 @@
-import { sseLines } from "./sse";
+import { sseLines } from "./sse.js";
 import type {
 	ApiResponse,
 	ContentBlock,
@@ -7,7 +7,7 @@ import type {
 	Message,
 	TextBlock,
 	ToolResultBlock,
-} from "./types";
+} from "./types.js";
 
 // ─── OpenAI-specific types ───────────────────────────────────────────────────
 

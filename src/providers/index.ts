@@ -1,5 +1,5 @@
-export { anthropicProvider } from "./anthropic";
-export { openaiProvider } from "./openai";
+export { anthropicProvider } from "./anthropic.js";
+export { openaiProvider } from "./openai.js";
 export type {
 	ApiResponse,
 	ContentBlock,
@@ -12,11 +12,11 @@ export type {
 	Tool,
 	ToolResultBlock,
 	ToolUseBlock,
-} from "./types";
+} from "./types.js";
 
-import { anthropicProvider } from "./anthropic";
-import { openaiProvider } from "./openai";
-import type { LLMProvider } from "./types";
+import { anthropicProvider } from "./anthropic.js";
+import { openaiProvider } from "./openai.js";
+import type { LLMProvider } from "./types.js";
 
 const providers: Record<string, LLMProvider> = {
 	anthropic: anthropicProvider,

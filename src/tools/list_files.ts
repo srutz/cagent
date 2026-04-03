@@ -1,6 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import type { ToolDefinition } from "./types";
+import type { ToolDefinition } from "./types.js";
 
 const MAX_FILES = 200;
 const SKIP = new Set(["node_modules", ".git", "dist", "build", "out", ".next", "target", ".idea", ".vscode", "__pycache__", ".gradle", ".mvn"]);

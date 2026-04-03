@@ -1,5 +1,5 @@
-import { c, output } from "./output";
-import { getConf, setConf } from "./systemconf";
+import { c, output } from "./output.js";
+import { getConf, setConf } from "./systemconf.js";
 
 const REPO_URL = "https://raw.githubusercontent.com/srutz/cagent/main/package.json";
 const CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000; // 1 day

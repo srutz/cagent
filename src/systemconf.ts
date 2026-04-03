@@ -1,6 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { getConfigDir } from "./constants";
+import { getConfigDir } from "./constants.js";
 
 const filePath = path.join(getConfigDir(), "systemconf.json");
 
