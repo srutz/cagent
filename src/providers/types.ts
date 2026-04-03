@@ -61,9 +61,13 @@ export interface LLMProviderOptions {
 	system?: string | undefined;
 	tools?: Tool[] | undefined;
 	stream?: boolean | undefined;
+	noApiKey?: boolean;
 }
 
 export interface LLMProvider {
+	/** If true, this provider does not require an API key by default. */
+	noApiKey?: boolean;
+
 	/** Build the fetch RequestInit for this provider. */
 	buildRequest(messages: Message[], options: LLMProviderOptions): RequestInit;
 

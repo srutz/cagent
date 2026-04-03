@@ -31,8 +31,8 @@ import {
 import { command } from "./commands.js";
 import { loadConfig } from "./config.js";
 import { getDsn, getWorkspacePath, setDsn, setWorkspacePath } from "./constants.js";
-import { c, output, setOutput } from "./output.js";
 import { createInkOutput } from "./inkoutput.js";
+import { c, output, setOutput } from "./output.js";
 import { getProvider, type Message, type ToolResultBlock } from "./providers/index.js";
 import { getConf, loadSystemConf } from "./systemconf.js";
 import { executeTool, shouldConfirm } from "./tools/index.js";
@@ -124,7 +124,7 @@ function formatTokens(): string {
 	return `${c.dim}(${t.total.toLocaleString()} tokens)${c.reset} `;
 }
 
-const MAX_TURNS = 20;
+const DEFAULT_MAX_TURNS = 20;
 const WORKSPACE = getWorkspacePath();
 
 // ─── Agent loop ───────────────────────────────────────────────────────────────
@@ -132,9 +132,10 @@ const WORKSPACE = getWorkspacePath();
 async function runAgent(userMessage: string, history: Message[], llm: LlmOptions): Promise<void> {
 	history.push({ role: "user", content: [{ type: "text", text: userMessage }] });
 
+	const maxTurns = llm.model.maxTurns ?? DEFAULT_MAX_TURNS;
 	let turns = 0;
 
-	while (turns < MAX_TURNS) {
+	while (turns < maxTurns) {
 		turns++;
 		if (getThinkingEnabled()) {
 			output.write(`${c.dim}[thinking...]${c.reset}\r`);
@@ -229,8 +230,8 @@ async function runAgent(userMessage: string, history: Message[], llm: LlmOptions
 		break;
 	}
 
-	if (turns >= MAX_TURNS) {
-		output.log("⚠ agent", c.yellow, `Hit max turns (${MAX_TURNS}). Stopping.`);
+	if (turns >= maxTurns) {
+		output.log("⚠ agent", c.yellow, `Hit max turns (${maxTurns}). Stopping.`);
 	}
 }
 
@@ -264,8 +265,9 @@ async function main() {
 	const provider = getProvider(model.provider);
 	const envKey = `CUSTOMAGENT_APIKEY_${model.provider.toUpperCase()}`;
 	const apiKey = process.env[envKey] ?? "";
+	const modelWantsApiKey = !model.noApiKey && !provider.noApiKey;
 
-	if (!apiKey && !model.noApiKey) {
+	if (!apiKey && modelWantsApiKey) {
 		output.error(
 			`${c.red}Error: API key not set.${c.reset}\n` + `  Set ${envKey} in your environment`,
 		);

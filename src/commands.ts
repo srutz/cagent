@@ -66,9 +66,10 @@ export async function command(context: AgentContext, task: string): Promise<bool
 			if (!match) {
 				output.log("✗", c.red, `unknown model key "${arg}". Use /model to list.`);
 			} else {
+				const provider = getProvider(match.provider);
 				const envKey = `CUSTOMAGENT_APIKEY_${match.provider.toUpperCase()}`;
 				const apiKey = process.env[envKey] ?? "";
-				if (!apiKey && !match.noApiKey) {
+				if (!apiKey && !match.noApiKey && !provider.noApiKey) {
 					output.log("✗", c.red, `API key not set for ${match.provider}. Set ${envKey}`);
 				} else {
 					context.llm.model = match;

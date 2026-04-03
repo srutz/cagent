@@ -21,8 +21,8 @@ import type { LLMProvider } from "./types.js";
 const providers: Record<string, LLMProvider> = {
 	anthropic: anthropicProvider,
 	openai: openaiProvider,
-	llamacpp: openaiProvider,
-	ollama: openaiProvider,
+	llamacpp: { ...openaiProvider, noApiKey: true },
+	ollama: { ...openaiProvider, noApiKey: true },
 };
 
 export function getProvider(providerName: string): LLMProvider {

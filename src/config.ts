@@ -12,6 +12,7 @@ export const ModelSchema = z.object({
 	modelName: z.string(),
 	preventStreaming: z.boolean().optional(),
 	noApiKey: z.boolean().optional(),
+	maxTurns: z.number().int().positive().optional(),
 });
 
 export const FileHandleSchema = z.object({
