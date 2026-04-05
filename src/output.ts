@@ -24,6 +24,7 @@ export const c = {
 
 /** Interface every output backend must implement. */
 export interface IOutput {
+	exit(): void;
 	startupWriteLn(text: string): void;
 	write(text: string): void;
 	writeln(text?: string): void;
@@ -57,6 +58,10 @@ export class ConsoleOutput implements IOutput {
 		}
 		this.rl.setPrompt(prompt);
 		return this.rl;
+	}
+
+	exit() {
+		// Clean up readline interface if it exists
 	}
 
 	startupWriteLn(text: string): void {

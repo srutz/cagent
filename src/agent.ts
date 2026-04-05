@@ -308,6 +308,7 @@ async function main() {
 		await runAgent(oneShot, history, llm);
 		saveSession(history);
 		output.startupWriteLn(`\n${c.dim}done.${c.reset}\n`);
+		output.exit();
 		return;
 	}
 

@@ -328,6 +328,10 @@ export class InkOutput implements IOutput {
 		this.inkInstance = inkInstance;
 	}
 
+	exit() {
+		this.inkInstance.unmount();
+	}
+
 	startupWriteLn(text: string): void {
 		this.store.pushStartupLine(text);
 	}
