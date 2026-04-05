@@ -7,7 +7,7 @@
  */
 
 import * as readline from "node:readline";
-import { loadHistory, appendHistory, saveHistory } from "./readlineutils.js";
+import { appendHistory, loadHistory } from "./readlineutils.js";
 
 export const c = {
 	reset: "\x1b[0m",
@@ -24,6 +24,7 @@ export const c = {
 
 /** Interface every output backend must implement. */
 export interface IOutput {
+	startupWriteLn(text: string): void;
 	write(text: string): void;
 	writeln(text?: string): void;
 	error(text: string): void;
@@ -57,6 +58,11 @@ export class ConsoleOutput implements IOutput {
 		this.rl.setPrompt(prompt);
 		return this.rl;
 	}
+
+	startupWriteLn(text: string): void {
+		console.log(text);
+	}
+
 	write(text: string): void {
 		process.stdout.write(text);
 	}

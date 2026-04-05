@@ -18,6 +18,7 @@ import * as path from "node:path";
 import { parseArgs } from "node:util";
 
 const require = createRequire(import.meta.url);
+
 import {
 	buildSystemPrompt,
 	callLlm,
@@ -276,38 +277,44 @@ async function main() {
 
 	const llm: LlmOptions = { model, provider, apiKey };
 
-	output.writeln(
+	output.startupWriteLn(
 		`${c.bold}${c.magenta}◆ cagent v${require("../package.json").version}${c.reset} by stepan.rutz / ${c.dim}Model: ${model.provider}: ${model.modelName}${c.reset}`,
 	);
 	await checkForUpdate(require("../package.json").version);
-	output.writeln(`${c.dim}  workspace: ${WORKSPACE}${c.reset}`);
-	output.writeln(
+	output.startupWriteLn(`${c.dim}  workspace: ${WORKSPACE}${c.reset}`);
+	output.startupWriteLn(
 		`${c.dim}  Disclaimer: cagent may do dangerous harm if you are not careful. use at your own risk.${c.reset}`,
 	);
 	const dsn = getDsn();
 	if (dsn) {
-		output.writeln(`${c.dim}  database:  ${dsn}${c.reset}`);
+		output.startupWriteLn(`${c.dim}  database:  ${dsn}${c.reset}`);
 	} else if (process.env.PGDATABASE) {
-		output.writeln(`${c.dim}  database:  ${process.env.PGDATABASE} (from PG* env vars)${c.reset}`);
+		output.startupWriteLn(
+			`${c.dim}  database:  ${process.env.PGDATABASE} (from PG* env vars)${c.reset}`,
+		);
 	}
 
 	const history: Message[] = loadSession();
 	if (sessionFile && history.length > 0) {
-		output.writeln(`${c.dim}  restored ${history.length} messages from ${sessionFile}${c.reset}`);
+		output.startupWriteLn(
+			`${c.dim}  restored ${history.length} messages from ${sessionFile}${c.reset}`,
+		);
 	}
 
 	// One-shot mode: argument passed directly
 	const oneShot = positionals.join(" ").trim();
 	if (oneShot) {
-		output.writeln(`\n${c.dim}task: ${oneShot}${c.reset}\n`);
+		output.startupWriteLn(`\n${c.dim}task: ${oneShot}${c.reset}\n`);
 		await runAgent(oneShot, history, llm);
 		saveSession(history);
-		output.writeln(`\n${c.dim}done.${c.reset}\n`);
+		output.startupWriteLn(`\n${c.dim}done.${c.reset}\n`);
 		return;
 	}
 
 	// Interactive REPL
-	output.writeln(`${c.dim}  Agentloop running. Ctrl+C to exit. /help for commands.\n${c.reset}`);
+	output.startupWriteLn(
+		`${c.dim}  Agentloop running. Ctrl+C to exit. /help for commands.\n${c.reset}`,
+	);
 
 	const prompt = `${c.magenta}you > ${c.reset}`;
 

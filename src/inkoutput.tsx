@@ -22,6 +22,7 @@ interface Line {
 type Listener = () => void;
 
 class OutputStore {
+	startupLines: string[] = [];
 	lines: Line[] = [];
 	nextId = 0;
 	partial = "";
@@ -52,6 +53,11 @@ class OutputStore {
 
 	private emit(): void {
 		for (const fn of this.listeners) fn();
+	}
+
+	pushStartupLine(text: string): void {
+		this.startupLines.push(text);
+		this.emit();
 	}
 
 	pushLine(text: string, stream: "stdout" | "stderr" = "stdout"): void {
@@ -256,6 +262,26 @@ function ConfirmLine({ store }: { store: OutputStore }) {
 	return <Text color="yellow">{store.confirmQuestion} [Y/n] </Text>;
 }
 
+// ─── Startup message component ──────────────────────────────────────────────
+
+function StartupMessage({ store }: { store: OutputStore }) {
+	const [, forceRender] = useState(0);
+
+	useEffect(() => {
+		return store.subscribe(() => forceRender((n) => n + 1));
+	}, [store]);
+
+	if (store.startupLines.length === 0) return null;
+
+	return (
+		<Box flexDirection="column">
+			{store.startupLines.map((line, i) => (
+				<Text key={i}>{line}</Text>
+			))}
+		</Box>
+	);
+}
+
 // ─── Main app ────────────────────────────────────────────────────────────────
 
 function InkApp({ store }: { store: OutputStore }) {
@@ -263,16 +289,16 @@ function InkApp({ store }: { store: OutputStore }) {
 
 	useEffect(() => {
 		const unsub = store.subscribe(() => {
-			//console.log("emit fired", store.lines.length, "lines");
 			forceRender((n) => n + 1);
 		});
 		// Pick up lines pushed before subscription was active
 		forceRender((n) => n + 1);
 		return unsub;
 	}, [store]);
-	//console.log("render inkapp", store.lines.length, store.lines.join(" "));
+
 	return (
 		<Box flexDirection="column">
+			<StartupMessage store={store} />
 			<Static items={store.lines}>
 				{(line) =>
 					line.stream === "stderr" ? (
@@ -300,6 +326,10 @@ export class InkOutput implements IOutput {
 	constructor(store: OutputStore, inkInstance: { unmount: () => void }) {
 		this.store = store;
 		this.inkInstance = inkInstance;
+	}
+
+	startupWriteLn(text: string): void {
+		this.store.pushStartupLine(text);
 	}
 
 	write(text: string): void {
