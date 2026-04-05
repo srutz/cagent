@@ -276,6 +276,7 @@ function StartupMessage({ store }: { store: OutputStore }) {
 	return (
 		<Box flexDirection="column">
 			{store.startupLines.map((line, i) => (
+				// biome-ignore lint/suspicious/noArrayIndexKey: indexis fine
 				<Text key={i}>{line}</Text>
 			))}
 		</Box>
