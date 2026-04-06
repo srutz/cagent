@@ -23,11 +23,13 @@ export const c = {
 	gray: "\x1b[90m",
 };
 
-/** Types of output */
+export type SectionOptions = { toolName?: string };
+
 export type Section = {
 	type: "user" | "assistant" | "tool_use" | "tool_result" | "echo";
 	content: string[];
 	partial?: string;
+	options?: SectionOptions | undefined;
 };
 
 /** Interface every output backend must implement. */
@@ -42,7 +44,7 @@ export interface IOutput {
 	/** Read a line of user input (with prompt and history). */
 	readLine(prompt: string): Promise<string>;
 
-	open(sectionType: Section["type"], options?: { toolName?: string }): SectionWithId;
+	open(sectionType: Section["type"], options?: SectionOptions): SectionWithId;
 	close(): void;
 	setThinking(thinking: boolean): void;
 }

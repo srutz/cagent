@@ -18,7 +18,11 @@ export function InputLine({ store }: { store: OutputStore }) {
 			if (value) {
 				appendHistory(value, store.historyLines);
 			}
-			store.pushLine(`${store.inputPrompt}${store.inputValue}`);
+			store.sections.push({
+				id: store.nextId++,
+				type: "user",
+				content: [value],
+			});
 			const resolve = store.inputResolve;
 			store.finishInput();
 			resolve?.(value);

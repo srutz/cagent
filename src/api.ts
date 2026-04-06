@@ -1,8 +1,8 @@
 import type { Config, FileHandle, Model } from "./config.js";
 import { getWorkspacePath } from "./constants.js";
+import { c, output } from "./output.js";
 import type { ApiResponse, LLMProvider, Message } from "./providers/index.js";
 import { getTools } from "./tools/index.js";
-import { c, output } from "./output.js";
 
 const STREAMING_DEFAULT = true; // stream responses by default, but allow disabling for providers that support it
 
@@ -60,6 +60,7 @@ const BASE_SYSTEM_PROMPT = `You are an expert coding agent. When given a task:
 3. If there are errors, read them carefully and fix them.
 4. Iterate until the output is correct.
 5. Be concise in your explanations — let the code speak.
+6. if using typescript, use import statements at the top of the files if possible at all and type everything properly.
 
 Workspace path: ${getWorkspacePath()}
 You can write files, read them back, and run shell commands.

@@ -7,7 +7,7 @@
 
 import { render } from "ink";
 import React from "react";
-import type { IOutput, Section } from "./output.js";
+import type { IOutput, Section, SectionOptions } from "./output.js";
 import { c } from "./output.js";
 import { loadHistory } from "./readlineutils.js";
 import { App } from "./ui/App.js";
@@ -36,6 +36,9 @@ export class OutputStore {
 	confirmActive = false;
 	confirmQuestion = "";
 	confirmResolve: ((value: boolean) => void) | null = null;
+
+	/** Collapsed sections tracking */
+	collapsedSections = new Set<number>();
 
 	private listeners: Listener[] = [];
 
@@ -93,6 +96,24 @@ export class OutputStore {
 		this.confirmResolve = null;
 		this.emit();
 	}
+
+	toggleCollapse(sectionId: number): void {
+		if (this.collapsedSections.has(sectionId)) {
+			this.collapsedSections.delete(sectionId);
+		} else {
+			this.collapsedSections.add(sectionId);
+		}
+		this.emit();
+	}
+
+	getLastToolResultId(): number | null {
+		for (let i = this.sections.length - 1; i >= 0; i--) {
+			if (this.sections[i]?.type === "tool_result") {
+				return this.sections[i]?.id ?? null;
+			}
+		}
+		return null;
+	}
 }
 
 export class InkOutput implements IOutput {
@@ -128,7 +149,6 @@ export class InkOutput implements IOutput {
 		section.content = [...section.content, (section.partial || "") + text];
 		section.partial = "";
 		this.store.emit();
-		//this.store.pushLine(full);
 	}
 
 	error(text: string): void {
@@ -155,9 +175,14 @@ export class InkOutput implements IOutput {
 		});
 	}
 
-	open(sectionType: SectionWithId["type"]): SectionWithId {
+	open(sectionType: SectionWithId["type"], options?: SectionOptions): SectionWithId {
 		const id = this.store.nextId++;
-		const section = { id, type: sectionType, content: [] } satisfies SectionWithId;
+		const section = {
+			id,
+			type: sectionType,
+			content: [],
+			options: options,
+		} satisfies SectionWithId;
 		this.store.sections.push(section);
 		this.store.emit();
 		return section;
@@ -168,6 +193,10 @@ export class InkOutput implements IOutput {
 		if (!section) {
 			console.error("No section to close");
 			return;
+		}
+		// Auto-collapse tool_result sections with more than 10 lines
+		if (section.type === "tool_result" && section.content.length > 10) {
+			this.store.collapsedSections.add(section.id);
 		}
 		this.store.emit();
 	}
