@@ -96,7 +96,7 @@ export function SectionRenderer({
 			padding={section.options?.box ? 1 : 0}
 			alignSelf={section.options?.box ? "flex-start" : undefined}
 			borderStyle={section.options?.box ? "round" : undefined}
-			borderColor={section.options?.box ? "cyan" : undefined}
+			borderColor={section.options?.box ? "yellow" : undefined}
 		>
 			{displayContent.map((line, index) => (
 				<Box flexDirection="row" key={section.id + "_" + index} columnGap={1}>
