@@ -7,6 +7,7 @@
  */
 
 import * as readline from "node:readline";
+import type { SectionWithId } from "./inkoutput.js";
 import { appendHistory, loadHistory } from "./readlineutils.js";
 
 export const c = {
@@ -26,12 +27,12 @@ export const c = {
 export type Section = {
 	type: "user" | "assistant" | "tool_use" | "tool_result" | "echo";
 	content: string[];
+	partial?: string;
 };
 
 /** Interface every output backend must implement. */
 export interface IOutput {
 	exit(): void;
-	startupWriteLn(text: string): void;
 	write(text: string): void;
 	writeln(text?: string): void;
 	error(text: string): void;
@@ -42,6 +43,10 @@ export interface IOutput {
 	confirm(question: string): Promise<boolean>;
 	/** Read a line of user input (with prompt and history). */
 	readLine(prompt: string): Promise<string>;
+
+	open(sectionType: Section["type"]): SectionWithId;
+	close(): void;
+	setThinking(thinking: boolean): void;
 }
 
 const MAX_HISTORY = 500;
@@ -68,10 +73,6 @@ export class ConsoleOutput implements IOutput {
 
 	exit() {
 		// Clean up readline interface if it exists
-	}
-
-	startupWriteLn(text: string): void {
-		console.log(text);
 	}
 
 	write(text: string): void {
@@ -131,6 +132,16 @@ export class ConsoleOutput implements IOutput {
 			});
 			rl.once("close", () => resolve("/exit"));
 		});
+	}
+
+	open(_sectionType: Section["type"]): SectionWithId {
+		throw new Error("ConsoleOutput does not support sections. This should not be called.");
+	}
+	close() {
+		throw new Error("ConsoleOutput does not support sections. This should not be called.");
+	}
+	setThinking(_thinking: boolean) {
+		throw new Error("ConsoleOutput does not support sections. This should not be called.");
 	}
 }
 

@@ -9,7 +9,7 @@ import type {
 	ToolResultBlock,
 } from "./types.js";
 
-// ─── OpenAI-specific types ───────────────────────────────────────────────────
+// OpenAI-specific types
 
 interface OpenAIMessage {
 	role: "system" | "user" | "assistant" | "tool";
@@ -43,8 +43,6 @@ interface OpenAIResponse {
 		completion_tokens?: number;
 	};
 }
-
-// ─── Converters ──────────────────────────────────────────────────────────────
 
 function convertMessages(messages: Message[], system?: string): OpenAIMessage[] {
 	const out: OpenAIMessage[] = [];
@@ -124,7 +122,7 @@ function convertTools(
 	}));
 }
 
-// ─── Map finish_reason → unified stop_reason ─────────────────────────────────
+// Map finish_reason → unified stop_reason
 
 function mapFinishReason(reason: string): string {
 	switch (reason) {
@@ -139,7 +137,7 @@ function mapFinishReason(reason: string): string {
 	}
 }
 
-// ─── Provider ────────────────────────────────────────────────────────────────
+// Provider
 
 export const openaiProvider: LLMProvider = {
 	buildRequest(messages: Message[], options: LLMProviderOptions): RequestInit {

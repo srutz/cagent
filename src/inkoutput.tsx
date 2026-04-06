@@ -5,23 +5,24 @@
  * Input is handled via Ink's useInput hook — no readline needed.
  */
 
-import { Box, render, Text, useInput } from "ink";
+import { Box, render, Text } from "ink";
 import React, { useEffect, useState } from "react";
-import type { Section } from "./output.js";
+import type { IOutput, Section } from "./output.js";
 import { c } from "./output.js";
-import { appendHistory, loadHistory } from "./readlineutils.js";
-
-// ─── Shared state between the React tree and the imperative InkOutput ────────
+import { loadHistory } from "./readlineutils.js";
+import { ConfirmLine } from "./ui/ConfirmLine.js";
+import { InputLine } from "./ui/InputLine.js";
+import { SectionRenderer } from "./ui/SectionRenderer.js";
 
 type Listener = () => void;
 
 export type SectionWithId = Section & { id: number };
 
-class OutputStore {
-	startupLines: string[] = [];
+export class OutputStore {
 	sections: SectionWithId[] = [];
+	thinking = false;
 	//lines: Line[] = [];
-	nextId = 0;
+	nextId = 1;
 	partial = "";
 
 	/** Input state */
@@ -48,17 +49,10 @@ class OutputStore {
 		};
 	}
 
-	pushSection(_section: Section): void {}
-
-	private emit(): void {
+	emit(): void {
 		for (const f of this.listeners) {
 			f();
 		}
-	}
-
-	pushStartupLine(text: string): void {
-		this.startupLines.push(text);
-		this.emit();
 	}
 
 	pushLine(text: string): void {
@@ -86,6 +80,7 @@ class OutputStore {
 
 	finishInput(): void {
 		this.inputActive = false;
+		this.inputValue = "";
 		this.inputResolve = null;
 		this.emit();
 	}
@@ -108,183 +103,7 @@ class OutputStore {
 	}
 }
 
-// ─── Input component using useInput ──────────────────────────────────────────
-
-function InputLine({ store }: { store: OutputStore }) {
-	const [, forceRender] = useState(0);
-
-	useEffect(() => {
-		return store.subscribe(() => forceRender((n) => n + 1));
-	}, [store]);
-
-	useInput((input, key) => {
-		if (!store.inputActive) return;
-
-		if (key.return) {
-			const value = store.inputValue.trim();
-			if (value) {
-				appendHistory(value, store.historyLines);
-			}
-			store.pushLine(`${store.inputPrompt}${store.inputValue}`);
-			const resolve = store.inputResolve;
-			store.finishInput();
-			resolve?.(value);
-			return;
-		}
-
-		if (key.backspace || key.delete) {
-			if (store.inputCursor > 0) {
-				store.inputValue =
-					store.inputValue.slice(0, store.inputCursor - 1) +
-					store.inputValue.slice(store.inputCursor);
-				store.inputCursor--;
-				store.updateInput();
-			}
-			return;
-		}
-
-		if (key.leftArrow) {
-			if (store.inputCursor > 0) {
-				store.inputCursor--;
-				store.updateInput();
-			}
-			return;
-		}
-
-		if (key.rightArrow) {
-			if (store.inputCursor < store.inputValue.length) {
-				store.inputCursor++;
-				store.updateInput();
-			}
-			return;
-		}
-
-		if (key.upArrow) {
-			if (store.historyLines.length === 0) return;
-			if (store.historyIndex === -1) {
-				store.historySaved = store.inputValue;
-			}
-			if (store.historyIndex < store.historyLines.length - 1) {
-				store.historyIndex++;
-				store.inputValue =
-					store.historyLines[store.historyLines.length - 1 - store.historyIndex] ?? "";
-				store.inputCursor = store.inputValue.length;
-				store.updateInput();
-			}
-			return;
-		}
-
-		if (key.downArrow) {
-			if (store.historyIndex > 0) {
-				store.historyIndex--;
-				store.inputValue =
-					store.historyLines[store.historyLines.length - 1 - store.historyIndex] ?? "";
-				store.inputCursor = store.inputValue.length;
-				store.updateInput();
-			} else if (store.historyIndex === 0) {
-				store.historyIndex = -1;
-				store.inputValue = store.historySaved;
-				store.inputCursor = store.inputValue.length;
-				store.updateInput();
-			}
-			return;
-		}
-
-		// ctrl+a / ctrl+e
-		if (key.ctrl && input === "a") {
-			store.inputCursor = 0;
-			store.updateInput();
-			return;
-		}
-		if (key.ctrl && input === "e") {
-			store.inputCursor = store.inputValue.length;
-			store.updateInput();
-			return;
-		}
-		// ctrl+u — clear line
-		if (key.ctrl && input === "u") {
-			store.inputValue = "";
-			store.inputCursor = 0;
-			store.updateInput();
-			return;
-		}
-
-		// Regular character
-		if (input && !key.ctrl && !key.meta) {
-			store.inputValue =
-				store.inputValue.slice(0, store.inputCursor) +
-				input +
-				store.inputValue.slice(store.inputCursor);
-			store.inputCursor += input.length;
-			store.updateInput();
-		}
-	});
-
-	if (!store.inputActive) return null;
-
-	const before = store.inputValue.slice(0, store.inputCursor);
-	const cursor = store.inputValue[store.inputCursor] ?? " ";
-	const after = store.inputValue.slice(store.inputCursor + 1);
-
-	return (
-		<Box>
-			<Text>{store.inputPrompt}</Text>
-			<Text>{before}</Text>
-			<Text inverse>{cursor}</Text>
-			<Text>{after}</Text>
-		</Box>
-	);
-}
-
-// ─── Confirm component ──────────────────────────────────────────────────────
-
-function ConfirmLine({ store }: { store: OutputStore }) {
-	const [, forceRender] = useState(0);
-
-	useEffect(() => {
-		return store.subscribe(() => forceRender((n) => n + 1));
-	}, [store]);
-
-	useInput((input, key) => {
-		if (!store.confirmActive) return;
-		const k = input.toLowerCase().trim();
-		const yes = k === "" || k === "y" || key.return;
-		const no = k === "n";
-		if (yes || no) {
-			store.pushLine(`${c.yellow}${store.confirmQuestion} [Y/n]${c.reset} ${yes ? "yes" : "no"}`);
-			const resolve = store.confirmResolve;
-			store.finishConfirm();
-			resolve?.(yes);
-		}
-	});
-
-	if (!store.confirmActive) return null;
-
-	return <Text color="yellow">{store.confirmQuestion} [Y/n] </Text>;
-}
-
-// ─── Startup message component ──────────────────────────────────────────────
-
-function StartupMessage({ store }: { store: OutputStore }) {
-	const [, forceRender] = useState(0);
-
-	useEffect(() => {
-		return store.subscribe(() => forceRender((n) => n + 1));
-	}, [store]);
-
-	if (store.startupLines.length === 0) return null;
-
-	return (
-		<Box flexDirection="column">
-			{store.startupLines.map((line, i) => (
-				// biome-ignore lint/suspicious/noArrayIndexKey: indexis fine
-				<Text key={i}>{line}</Text>
-			))}
-		</Box>
-	);
-}
-
-// ─── Main app ────────────────────────────────────────────────────────────────
+// Main app
 
 function InkApp({ store }: { store: OutputStore }) {
 	const [, forceRender] = useState(0);
@@ -301,29 +120,13 @@ function InkApp({ store }: { store: OutputStore }) {
 	const sections = store.sections;
 	return (
 		<Box flexDirection="column">
-			<StartupMessage store={store} />
 			{sections.map((section) => {
-				switch (section.type) {
-					case "echo":
-						return <EchoSection key={section.id} content={section} />;
-					default:
-						return <Text key={section.id}>Unknown section type: {section.type}</Text>;
-				}
+				return <SectionRenderer key={section.id} section={section} />;
 			})}
-			{/*
-			<Static items={store.lines}>{(line) => <Text key={line.id}>{line.text}</Text>}</Static>
-			{store.partial ? <Text>{store.partial}</Text> : null}
-      */}
-			<InputLine store={store} />
-			<ConfirmLine store={store} />
+			{store.thinking && <Text color="dim">[thinking...]</Text>}
+			{store.confirmActive ? <ConfirmLine store={store} /> : <InputLine store={store} />}
 		</Box>
 	);
-}
-
-// ─── InkOutput class ─────────────────────────────────────────────────────────
-
-{
-	/* ─── InkOutput class ───────────────────────────────────────────────────────── */
 }
 
 export class InkOutput implements IOutput {
@@ -335,24 +138,30 @@ export class InkOutput implements IOutput {
 		this.inkInstance = inkInstance;
 	}
 
-	pushSection(_section: Section): void {}
-
 	exit() {
 		this.inkInstance.unmount();
 	}
 
-	startupWriteLn(text: string): void {
-		this.store.pushStartupLine(text);
-	}
-
 	write(text: string): void {
-		this.store.setPartial(this.store.partial + text);
+		const section = this.store.sections[this.store.sections.length - 1];
+		if (!section) {
+			throw new Error("no section");
+		}
+		section.partial = (section.partial || "") + text;
+		this.store.emit();
+		//console.log(">> write", text);
 	}
 
 	writeln(text = ""): void {
-		const full = this.store.partial + text;
-		this.store.partial = "";
-		this.store.pushLine(full);
+		const section = this.store.sections[this.store.sections.length - 1];
+		if (!section) {
+			throw new Error("no section");
+		}
+		//console.log(">> writeln", text);
+		section.content = [...section.content, (section.partial || "") + text];
+		section.partial = "";
+		this.store.emit();
+		//this.store.pushLine(full);
 	}
 
 	error(text: string): void {
@@ -390,13 +199,30 @@ export class InkOutput implements IOutput {
 		});
 	}
 
-	unmount(): void {
-		this.inkInstance.unmount();
+	open(sectionType: SectionWithId["type"]): SectionWithId {
+		const id = this.store.nextId++;
+		const section = { id, type: sectionType, content: [] } satisfies SectionWithId;
+		this.store.sections.push(section);
+		this.store.emit();
+		return section;
 	}
-}
 
-{
-	/* ─── Factory ───────────────────────────────────────────────────────────────── */
+	close() {
+		const section = this.store.sections[this.store.sections.length - 1];
+		if (!section) {
+			console.error("No section to close");
+			return;
+		}
+		this.store.emit();
+	}
+
+	setThinking(thinking: boolean) {
+		if (this.store.thinking === thinking) {
+			return;
+		}
+		this.store.thinking = thinking;
+		this.store.emit();
+	}
 }
 
 export function createInkOutput(): InkOutput {

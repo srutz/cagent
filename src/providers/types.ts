@@ -5,8 +5,6 @@
  * Each provider adapter translates to/from this format at the boundary.
  */
 
-// ─── Unified internal types ──────────────────────────────────────────────────
-
 export type Role = "user" | "assistant";
 
 export interface TextBlock {
@@ -51,7 +49,7 @@ export interface Tool {
 	input_schema: Record<string, unknown>;
 }
 
-// ─── Provider interface ──────────────────────────────────────────────────────
+// Provider interface
 
 export interface LLMProviderOptions {
 	apiKey: string;

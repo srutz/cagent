@@ -40,8 +40,6 @@ import { executeTool, shouldConfirm } from "./tools/index.js";
 import { loadExternalTools } from "./tools/loader.js";
 import { checkForUpdate } from "./versioncheck.js";
 
-// ─── CLI args ────────────────────────────────────────────────────────────────
-
 const { values: args, positionals } = parseArgs({
 	options: {
 		verbose: { type: "boolean", short: "v", default: false },
@@ -98,7 +96,7 @@ if (args.verbose) {
 	setVerbose(true);
 }
 
-// ─── Session persistence ─────────────────────────────────────────────────────
+// Session persistence
 
 let sessionFile = args.session;
 
@@ -117,7 +115,7 @@ function saveSession(history: Message[]) {
 	fs.writeFileSync(sessionFile, JSON.stringify(history, null, 2));
 }
 
-// ─── Config ──────────────────────────────────────────────────────────────────
+// Config
 
 function formatTokens(): string {
 	const t = getSessionTokens();
@@ -128,9 +126,8 @@ function formatTokens(): string {
 const DEFAULT_MAX_TURNS = 20;
 const WORKSPACE = getWorkspacePath();
 
-// ─── Agent loop ───────────────────────────────────────────────────────────────
-
-async function runAgent(userMessage: string, history: Message[], llm: LlmOptions): Promise<void> {
+// Agent loop
+async function runAgent(userMessage: string, history: Message[], llm: LlmOptions) {
 	history.push({ role: "user", content: [{ type: "text", text: userMessage }] });
 
 	const maxTurns = llm.model.maxTurns ?? DEFAULT_MAX_TURNS;
@@ -139,29 +136,29 @@ async function runAgent(userMessage: string, history: Message[], llm: LlmOptions
 	while (turns < maxTurns) {
 		turns++;
 		if (getThinkingEnabled()) {
-			output.write(`${c.dim}[thinking...]${c.reset}\r`);
+			output.setThinking(true);
+			//output.write(`${c.dim}[thinking...]${c.reset}\r`);
 		}
 
+		output.open("assistant");
 		let streamStarted = false;
 		const response = await callLlm(history, llm, {
 			onText(text) {
 				if (!streamStarted) {
 					// Clear thinking indicator and print header
-					output.clearLine();
-					output.log("◆ agent", c.cyan, "");
+					output.setThinking(false);
+					//output.log("◆ agent", c.cyan, "");
 					streamStarted = true;
 				}
 				output.write(text);
 			},
 		});
 
-		// Clear the thinking indicator (in case no streaming happened)
-		if (!streamStarted) {
-			output.clearLine();
-		} else {
-			// End the streamed line
+		if (streamStarted) {
 			output.writeln();
+			output.close();
 		}
+		output.setThinking(false);
 
 		const tokenStr = formatTokens();
 
@@ -236,7 +233,7 @@ async function runAgent(userMessage: string, history: Message[], llm: LlmOptions
 	}
 }
 
-// ─── REPL / one-shot entry ────────────────────────────────────────────────────
+// REPL / one-shot entry
 
 async function main() {
 	const config = await loadConfig();
@@ -277,45 +274,49 @@ async function main() {
 
 	const llm: LlmOptions = { model, provider, apiKey };
 
-	output.startupWriteLn(
+	output.open("echo");
+	output.writeln(
 		`${c.bold}${c.magenta}◆ cagent v${require("../package.json").version}${c.reset} by stepan.rutz / ${c.dim}Model: ${model.provider}: ${model.modelName}${c.reset}`,
 	);
 	await checkForUpdate(require("../package.json").version);
-	output.startupWriteLn(`${c.dim}  workspace: ${WORKSPACE}${c.reset}`);
-	output.startupWriteLn(
+	output.writeln(`${c.dim}  workspace: ${WORKSPACE}${c.reset}`);
+	output.writeln(
 		`${c.dim}  Disclaimer: cagent may do dangerous harm if you are not careful. use at your own risk.${c.reset}`,
 	);
 	const dsn = getDsn();
 	if (dsn) {
-		output.startupWriteLn(`${c.dim}  database:  ${dsn}${c.reset}`);
+		output.writeln(`${c.dim}  database:  ${dsn}${c.reset}`);
 	} else if (process.env.PGDATABASE) {
-		output.startupWriteLn(
-			`${c.dim}  database:  ${process.env.PGDATABASE} (from PG* env vars)${c.reset}`,
-		);
+		output.writeln(`${c.dim}  database:  ${process.env.PGDATABASE} (from PG* env vars)${c.reset}`);
 	}
 
 	const history: Message[] = loadSession();
 	if (sessionFile && history.length > 0) {
-		output.startupWriteLn(
-			`${c.dim}  restored ${history.length} messages from ${sessionFile}${c.reset}`,
-		);
+		output.writeln(`${c.dim}  restored ${history.length} messages from ${sessionFile}${c.reset}`);
 	}
+	output.close();
 
 	// One-shot mode: argument passed directly
 	const oneShot = positionals.join(" ").trim();
 	if (oneShot) {
-		output.startupWriteLn(`\n${c.dim}task: ${oneShot}${c.reset}\n`);
+		//output.startupWriteLn(`\n${c.dim}task: ${oneShot}${c.reset}\n`);
+		output.open("user");
+		output.writeln(oneShot);
+		output.close();
 		await runAgent(oneShot, history, llm);
 		saveSession(history);
-		output.startupWriteLn(`\n${c.dim}done.${c.reset}\n`);
-		output.exit();
+		output.open("echo");
+		output.writeln("done");
+		output.close();
+
+		setTimeout(() => output.exit(), 1);
 		return;
 	}
 
 	// Interactive REPL
-	output.startupWriteLn(
-		`${c.dim}  Agentloop running. Ctrl+C to exit. /help for commands.\n${c.reset}`,
-	);
+	output.open("echo");
+	output.writeln(`${c.dim}  Agentloop running. Ctrl+C to exit. /help for commands.\n${c.reset}`);
+	output.close();
 
 	const prompt = `${c.magenta}you > ${c.reset}`;
 
