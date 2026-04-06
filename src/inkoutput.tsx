@@ -5,25 +5,22 @@
  * Input is handled via Ink's useInput hook — no readline needed.
  */
 
-import { Box, render, Static, Text, useInput } from "ink";
+import { Box, render, Text, useInput } from "ink";
 import React, { useEffect, useState } from "react";
-import type { IOutput } from "./output.js";
+import type { Section } from "./output.js";
 import { c } from "./output.js";
 import { appendHistory, loadHistory } from "./readlineutils.js";
 
 // ─── Shared state between the React tree and the imperative InkOutput ────────
 
-interface Line {
-	id: number;
-	text: string;
-	stream: "stdout" | "stderr";
-}
-
 type Listener = () => void;
+
+export type SectionWithId = Section & { id: number };
 
 class OutputStore {
 	startupLines: string[] = [];
-	lines: Line[] = [];
+	sections: SectionWithId[] = [];
+	//lines: Line[] = [];
 	nextId = 0;
 	partial = "";
 
@@ -51,8 +48,12 @@ class OutputStore {
 		};
 	}
 
+	pushSection(_section: Section): void {}
+
 	private emit(): void {
-		for (const fn of this.listeners) fn();
+		for (const f of this.listeners) {
+			f();
+		}
 	}
 
 	pushStartupLine(text: string): void {
@@ -60,8 +61,8 @@ class OutputStore {
 		this.emit();
 	}
 
-	pushLine(text: string, stream: "stdout" | "stderr" = "stdout"): void {
-		this.lines.push({ id: this.nextId++, text, stream });
+	pushLine(text: string): void {
+		this.sections.push({ id: this.nextId++, type: "echo", content: [text] });
 		this.emit();
 	}
 
@@ -297,21 +298,22 @@ function InkApp({ store }: { store: OutputStore }) {
 		return unsub;
 	}, [store]);
 
+	const sections = store.sections;
 	return (
 		<Box flexDirection="column">
 			<StartupMessage store={store} />
-			<Static items={store.lines}>
-				{(line) =>
-					line.stream === "stderr" ? (
-						<Text key={line.id} color="red">
-							{line.text}
-						</Text>
-					) : (
-						<Text key={line.id}>{line.text}</Text>
-					)
+			{sections.map((section) => {
+				switch (section.type) {
+					case "echo":
+						return <EchoSection key={section.id} content={section} />;
+					default:
+						return <Text key={section.id}>Unknown section type: {section.type}</Text>;
 				}
-			</Static>
+			})}
+			{/*
+			<Static items={store.lines}>{(line) => <Text key={line.id}>{line.text}</Text>}</Static>
 			{store.partial ? <Text>{store.partial}</Text> : null}
+      */}
 			<InputLine store={store} />
 			<ConfirmLine store={store} />
 		</Box>
@@ -319,6 +321,10 @@ function InkApp({ store }: { store: OutputStore }) {
 }
 
 // ─── InkOutput class ─────────────────────────────────────────────────────────
+
+{
+	/* ─── InkOutput class ───────────────────────────────────────────────────────── */
+}
 
 export class InkOutput implements IOutput {
 	private store: OutputStore;
@@ -328,6 +334,8 @@ export class InkOutput implements IOutput {
 		this.store = store;
 		this.inkInstance = inkInstance;
 	}
+
+	pushSection(_section: Section): void {}
 
 	exit() {
 		this.inkInstance.unmount();
@@ -348,11 +356,11 @@ export class InkOutput implements IOutput {
 	}
 
 	error(text: string): void {
-		this.store.pushLine(text, "stderr");
+		this.store.pushLine(text);
 	}
 
 	warn(text: string): void {
-		this.store.pushLine(text, "stderr");
+		this.store.pushLine(text);
 	}
 
 	log(prefix: string, color: string, msg: string): void {
@@ -387,7 +395,9 @@ export class InkOutput implements IOutput {
 	}
 }
 
-// ─── Factory ─────────────────────────────────────────────────────────────────
+{
+	/* ─── Factory ───────────────────────────────────────────────────────────────── */
+}
 
 export function createInkOutput(): InkOutput {
 	const store = new OutputStore();

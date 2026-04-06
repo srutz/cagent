@@ -22,6 +22,12 @@ export const c = {
 	gray: "\x1b[90m",
 };
 
+/** Types of output */
+export type Section = {
+	type: "user" | "assistant" | "tool_use" | "tool_result" | "echo";
+	content: string[];
+};
+
 /** Interface every output backend must implement. */
 export interface IOutput {
 	exit(): void;
