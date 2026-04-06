@@ -16,7 +16,7 @@ export function SectionRenderer({ section }: { section: SectionWithId }) {
 		fullContent.push(section.partial);
 	}
 	return (
-		<Box flexDirection="column">
+		<Box flexDirection="column" marginTop={1}>
 			{fullContent.map((line, index) => (
 				<Text key={section.id + "_" + index}>
 					{rpad(prefix, 12)} | {line}

@@ -5,25 +5,22 @@
  * Input is handled via Ink's useInput hook — no readline needed.
  */
 
-import { Box, render, Text } from "ink";
-import React, { useEffect, useState } from "react";
+import { render } from "ink";
+import React from "react";
 import type { IOutput, Section } from "./output.js";
 import { c } from "./output.js";
 import { loadHistory } from "./readlineutils.js";
-import { ConfirmLine } from "./ui/ConfirmLine.js";
-import { InputLine } from "./ui/InputLine.js";
-import { SectionRenderer } from "./ui/SectionRenderer.js";
-
-type Listener = () => void;
+import { App } from "./ui/App.js";
 
 export type SectionWithId = Section & { id: number };
+
+export type Listener = () => void;
 
 export class OutputStore {
 	sections: SectionWithId[] = [];
 	thinking = false;
-	//lines: Line[] = [];
+	exitRequested = false;
 	nextId = 1;
-	partial = "";
 
 	/** Input state */
 	inputActive = false;
@@ -57,11 +54,6 @@ export class OutputStore {
 
 	pushLine(text: string): void {
 		this.sections.push({ id: this.nextId++, type: "echo", content: [text] });
-		this.emit();
-	}
-
-	setPartial(text: string): void {
-		this.partial = text;
 		this.emit();
 	}
 
@@ -103,32 +95,6 @@ export class OutputStore {
 	}
 }
 
-// Main app
-
-function InkApp({ store }: { store: OutputStore }) {
-	const [, forceRender] = useState(0);
-
-	useEffect(() => {
-		const unsub = store.subscribe(() => {
-			forceRender((n) => n + 1);
-		});
-		// Pick up lines pushed before subscription was active
-		forceRender((n) => n + 1);
-		return unsub;
-	}, [store]);
-
-	const sections = store.sections;
-	return (
-		<Box flexDirection="column">
-			{sections.map((section) => {
-				return <SectionRenderer key={section.id} section={section} />;
-			})}
-			{store.thinking && <Text color="dim">[thinking...]</Text>}
-			{store.confirmActive ? <ConfirmLine store={store} /> : <InputLine store={store} />}
-		</Box>
-	);
-}
-
 export class InkOutput implements IOutput {
 	private store: OutputStore;
 	private inkInstance: { unmount: () => void };
@@ -139,6 +105,7 @@ export class InkOutput implements IOutput {
 	}
 
 	exit() {
+		this.store.exitRequested = true;
 		this.inkInstance.unmount();
 	}
 
@@ -174,17 +141,6 @@ export class InkOutput implements IOutput {
 
 	log(prefix: string, color: string, msg: string): void {
 		this.store.pushLine(`${color}${prefix}${c.reset} ${msg}`);
-	}
-
-	divider(label: string): void {
-		const line = "─".repeat(60);
-		this.store.pushLine("");
-		this.store.pushLine(`${c.dim}${line}${c.reset}`);
-		if (label) this.store.pushLine(`${c.dim}  ${label}${c.reset}`);
-	}
-
-	clearLine(): void {
-		this.store.setPartial("");
 	}
 
 	confirm(question: string): Promise<boolean> {
@@ -227,6 +183,6 @@ export class InkOutput implements IOutput {
 
 export function createInkOutput(): InkOutput {
 	const store = new OutputStore();
-	const inkInstance = render(React.createElement(InkApp, { store }));
+	const inkInstance = render(React.createElement(App, { store }));
 	return new InkOutput(store, inkInstance);
 }

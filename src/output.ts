@@ -38,13 +38,11 @@ export interface IOutput {
 	error(text: string): void;
 	warn(text: string): void;
 	log(prefix: string, color: string, msg: string): void;
-	divider(label: string): void;
-	clearLine(): void;
 	confirm(question: string): Promise<boolean>;
 	/** Read a line of user input (with prompt and history). */
 	readLine(prompt: string): Promise<string>;
 
-	open(sectionType: Section["type"]): SectionWithId;
+	open(sectionType: Section["type"], options?: { toolName?: string }): SectionWithId;
 	close(): void;
 	setThinking(thinking: boolean): void;
 }
@@ -93,16 +91,6 @@ export class ConsoleOutput implements IOutput {
 
 	log(prefix: string, color: string, msg: string): void {
 		console.log(`${color}${prefix}${c.reset} ${msg}`);
-	}
-
-	divider(label: string): void {
-		const line = "─".repeat(60);
-		console.log(`\n${c.dim}${line}${c.reset}`);
-		if (label) console.log(`${c.dim}  ${label}${c.reset}`);
-	}
-
-	clearLine(): void {
-		process.stdout.write(`\x1b[2K\r`);
 	}
 
 	confirm(question: string): Promise<boolean> {

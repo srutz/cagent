@@ -190,12 +190,16 @@ async function runAgent(userMessage: string, history: Message[], llm: LlmOptions
 				const { id, name, input } = block;
 
 				// Pretty-print the tool call
-				output.divider(`tool: ${name}`);
+				output.open("tool_use", { toolName: name });
+				/*
 				const inputLines = JSON.stringify(input, null, 2)
 					.split("\n")
 					.map((l) => `  ${l}`)
 					.join("\n");
 				output.writeln(`${c.yellow}${inputLines}${c.reset}`);
+        */
+				output.writeln(`${JSON.stringify(input)}`);
+				output.close();
 
 				// Confirm before executing (unless tool opts out)
 				if (shouldConfirm(name) && !(await output.confirm(`Execute tool "${name}"?`))) {
@@ -211,10 +215,11 @@ async function runAgent(userMessage: string, history: Message[], llm: LlmOptions
 				const result = await executeTool(WORKSPACE, name, input);
 
 				// Print result
-				output.writeln(`${c.gray}─ result ─${c.reset}`);
+				output.open("tool_result", { toolName: name });
 				result.split("\n").forEach((line) => {
 					output.writeln(`${c.green}  ${line}${c.reset}`);
 				});
+				output.close();
 
 				toolResults.push({ type: "tool_result", tool_use_id: id, content: result });
 			}
@@ -345,8 +350,7 @@ async function main() {
 		}
 		output.writeln();
 	}
-
-	output.writeln(`\n${c.dim}bye.${c.reset}\n`);
+	output.exit();
 }
 
 main().catch((err) => {
