@@ -7,7 +7,7 @@
 
 import { render } from "ink";
 import React from "react";
-import type { IOutput, Section, SectionOptions } from "./output.js";
+import type { Section, SectionOptions } from "./output.js";
 import { c } from "./output.js";
 import { loadHistory } from "./readlineutils.js";
 import { App } from "./ui/App.js";
@@ -94,6 +94,7 @@ export class OutputStore {
 	finishConfirm(): void {
 		this.confirmActive = false;
 		this.confirmResolve = null;
+		this.sections = this.sections.filter((s) => s.type !== "confirm");
 		this.emit();
 	}
 
@@ -116,7 +117,7 @@ export class OutputStore {
 	}
 }
 
-export class InkOutput implements IOutput {
+export class InkOutput {
 	private store: OutputStore;
 	private inkInstance: { unmount: () => void };
 

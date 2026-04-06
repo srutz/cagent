@@ -1,6 +1,8 @@
 /** biome-ignore-all lint/suspicious/noArrayIndexKey: its fine */
+
 import { Box, Text } from "ink";
 import type { OutputStore, SectionWithId } from "../inkoutput.js";
+import type { AnsiColorNames } from "../utils.js";
 
 export function SectionRenderer({
 	section,
@@ -12,24 +14,33 @@ export function SectionRenderer({
 	//console.log(">> rendering SectionRenderer", section.content.join("\n"));
 
 	let prefix: string = section.type;
+	//let prefixColor: Omit<ComponentProps<typeof Text>["color"], "string"> = "dim";
+	let prefixColor: AnsiColorNames = "dim";
 	switch (section.type) {
 		case "assistant":
-			prefix = "Agent replied";
+			prefix = "●";
+			prefixColor = "green";
 			break;
 		case "tool_result":
 			prefix = "tool_result";
 			if (section.options?.toolName) {
-				prefix = "Tool-Result " + section.options.toolName;
+				prefix = "⮐ Tool-result " + section.options.toolName;
 			}
+			prefixColor = "cyan";
 			break;
 		case "tool_use":
 			prefix = "tool_use";
 			if (section.options?.toolName) {
-				prefix = "Tool " + section.options.toolName;
+				prefix = "🔧 " + section.options.toolName;
 			}
+			prefixColor = "cyan";
 			break;
 		case "user":
-			prefix = "You said";
+			prefix = ">";
+			break;
+		case "confirm":
+			prefix = "? ";
+			prefixColor = "yellow";
 			break;
 		case "echo":
 			prefix = "";
@@ -40,13 +51,18 @@ export function SectionRenderer({
 	if (section.partial) {
 		fullContent.push(section.partial);
 	}
-	fullContent = fullContent.filter((line) => line.trim() !== ""); // Filter out empty lines
+	if (!section.options?.keepEmptyLines) {
+		/* Filter out empty lines */
+		fullContent = fullContent.filter((line) => line.trim() !== "");
+	}
 
 	if (!fullContent.length) {
 		return null;
 	}
 
-	// Handle collapse
+	{
+		/* Handle collapse */
+	}
 	const collapsed = store.collapsedSections.has(section.id);
 	let collapseThreshold = -1;
 	switch (section.type) {
@@ -65,16 +81,28 @@ export function SectionRenderer({
 		case "echo":
 			collapseThreshold = 999;
 			break;
+		case "confirm":
+			collapseThreshold = 999;
+			break;
 	}
 	const shouldCollapse = collapseThreshold > 0 && fullContent.length > collapseThreshold;
 	const displayContent =
 		shouldCollapse && collapsed ? fullContent.slice(0, collapseThreshold) : fullContent;
 
 	return (
-		<Box flexDirection="column" marginTop={2}>
-			<Text color={"dim"}>{prefix}</Text>
+		<Box
+			flexDirection="column"
+			marginTop={section.options?.box ? 0 : 2}
+			padding={section.options?.box ? 1 : 0}
+			alignSelf={section.options?.box ? "flex-start" : undefined}
+			borderStyle={section.options?.box ? "round" : undefined}
+			borderColor={section.options?.box ? "cyan" : undefined}
+		>
 			{displayContent.map((line, index) => (
-				<Text key={section.id + "_" + index}>{line}</Text>
+				<Box flexDirection="row" key={section.id + "_" + index} columnGap={1}>
+					{index === 0 && <Text color={prefixColor}>{prefix}</Text>}
+					<Text>{line || " "}</Text>
+				</Box>
 			))}
 			{shouldCollapse && collapsed && (
 				<Text color="dim">

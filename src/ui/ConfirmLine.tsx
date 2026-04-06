@@ -16,7 +16,11 @@ export function ConfirmLine({ store }: { store: OutputStore }) {
 		const yes = k === "" || k === "y" || key.return;
 		const no = k === "n";
 		if (yes || no) {
-			store.pushLine(`${c.yellow}${store.confirmQuestion} [Y/n]${c.reset} ${yes ? "yes" : "no"}`);
+			store.sections.push({
+				id: store.nextId++,
+				type: "confirm",
+				content: [`${c.yellow}${store.confirmQuestion} [Y/n]${c.reset} ${yes ? "yes" : "no"}`],
+			});
 			const resolve = store.confirmResolve;
 			store.finishConfirm();
 			resolve?.(yes);

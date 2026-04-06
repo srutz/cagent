@@ -32,8 +32,7 @@ import {
 import { command } from "./commands.js";
 import { loadConfig } from "./config.js";
 import { getDsn, getWorkspacePath, setDsn, setWorkspacePath } from "./constants.js";
-import { createInkOutput } from "./inkoutput.js";
-import { c, output, setOutput } from "./output.js";
+import { c, initOutput, output } from "./output.js";
 import { getProvider, type Message, type ToolResultBlock } from "./providers/index.js";
 import { getConf, loadSystemConf } from "./systemconf.js";
 import { executeTool, shouldConfirm } from "./tools/index.js";
@@ -48,36 +47,32 @@ const { values: args, positionals } = parseArgs({
 		workspace: { type: "string", short: "w" },
 		dsn: { type: "string", short: "d" },
 		tools: { type: "string", short: "t", multiple: true },
-		ink: { type: "boolean", default: false },
 	},
 	allowPositionals: true,
 });
 
 if (args.help) {
-	output.writeln(`${c.bold}cagent${c.reset} — a coding agent by ${c.magenta}stepan.rutz${c.reset}`);
-	output.writeln();
-	output.writeln(`Usage: cagent [options] [task]`);
-	output.writeln();
-	output.writeln(`Options:`);
-	output.writeln(`  -v, --verbose          Log API requests and responses`);
-	output.writeln(`  -s, --session <file>   Persist/restore conversation history`);
-	output.writeln(`  -w, --workspace <dir>  Set working directory (default: cwd)`);
-	output.writeln(
+	console.log(`${c.bold}cagent${c.reset} — a coding agent by ${c.magenta}stepan.rutz${c.reset}`);
+	console.log();
+	console.log(`Usage: cagent [options] [task]`);
+	console.log();
+	console.log(`Options:`);
+	console.log(`  -v, --verbose          Log API requests and responses`);
+	console.log(`  -s, --session <file>   Persist/restore conversation history`);
+	console.log(`  -w, --workspace <dir>  Set working directory (default: cwd)`);
+	console.log(
 		`  -d, --dsn <url>        PostgreSQL connection string (default: inherit PG* env vars)`,
 	);
-	output.writeln(
+	console.log(
 		`  -t, --tools <path>     Load external tools from .js file or directory (repeatable)`,
 	);
-	output.writeln(`      --ink               Use Ink (React) terminal UI`);
-	output.writeln(`  -h, --help             Show this message`);
-	output.writeln();
-	output.writeln(`Use /help inside the REPL for interactive commands.`);
+	console.log(`  -h, --help             Show this message`);
+	console.log();
+	console.log(`Use /help inside the REPL for interactive commands.`);
 	process.exit(0);
 }
 
-if (args.ink) {
-	setOutput(createInkOutput());
-}
+initOutput();
 
 if (args.workspace) {
 	const resolved = path.resolve(args.workspace);
@@ -279,12 +274,13 @@ async function main() {
 
 	const llm: LlmOptions = { model, provider, apiKey };
 
-	output.open("echo");
+	output.open("echo", { box: true, keepEmptyLines: true });
 	output.writeln(
 		`${c.bold}${c.magenta}◆ cagent v${require("../package.json").version}${c.reset} by stepan.rutz / ${c.dim}Model: ${model.provider}: ${model.modelName}${c.reset}`,
 	);
 	await checkForUpdate(require("../package.json").version);
-	output.writeln(`${c.dim}  workspace: ${WORKSPACE}${c.reset}`);
+	output.writeln(`${c.dim}  Workspace: ${WORKSPACE}${c.reset}`);
+	output.writeln("");
 	output.writeln(
 		`${c.dim}  Disclaimer: cagent may do dangerous harm if you are not careful. use at your own risk.${c.reset}`,
 	);
@@ -320,7 +316,7 @@ async function main() {
 
 	// Interactive REPL
 	output.open("echo");
-	output.writeln(`${c.dim}  Agentloop running. Ctrl+C to exit. /help for commands.\n${c.reset}`);
+	output.writeln(`${c.dim}Agentloop running. Ctrl+C to exit. /help for commands.\n${c.reset}`);
 	output.close();
 
 	const prompt = `${c.magenta}you > ${c.reset}`;
