@@ -193,7 +193,31 @@ async function runAgent(userMessage: string, history: Message[], llm: LlmOptions
 					.join("\n");
 				output.writeln(`${c.yellow}${inputLines}${c.reset}`);
         */
-				output.writeln(`${JSON.stringify(input)}`);
+
+				// biome-ignore lint/suspicious/noExplicitAny: i want it
+				let improvedInput: any = input;
+				if (typeof input === "object") {
+					switch (name) {
+						case "write_file":
+							if (input.content && input.path && typeof input.content === "string") {
+								improvedInput = `${input.path}" : ${input.content?.length} chars`;
+							}
+							break;
+						case "read_file":
+							if (input.path) {
+								improvedInput = `"${input.path}"`;
+							}
+							break;
+						case "list_files":
+							if (input.pattern) {
+								improvedInput = `${input.pattern}`;
+							}
+							break;
+					}
+				}
+				output.writeln(
+					`${typeof improvedInput === "string" ? improvedInput : JSON.stringify(improvedInput, null, 2)}`,
+				);
 				output.close();
 
 				// Confirm before executing (unless tool opts out)

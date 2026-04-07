@@ -31,7 +31,7 @@ export function SectionRenderer({
 		case "tool_use":
 			prefix = "tool_use";
 			if (section.options?.toolName) {
-				prefix = "🔧 " + section.options.toolName;
+				prefix = "⮕ " + section.options.toolName.trim();
 			}
 			prefixColor = "cyan";
 			break;
@@ -89,18 +89,31 @@ export function SectionRenderer({
 	const displayContent =
 		shouldCollapse && collapsed ? fullContent.slice(0, collapseThreshold) : fullContent;
 
+	let marginTop = 2;
+	if (section.options?.box) {
+		marginTop = 0;
+	} else if (section.type === "tool_result") {
+		marginTop = 0;
+	} else if (section.type === "echo") {
+		marginTop = 0;
+	}
+
 	return (
 		<Box
 			flexDirection="column"
-			marginTop={section.options?.box ? 0 : 2}
+			marginTop={marginTop}
 			padding={section.options?.box ? 1 : 0}
 			alignSelf={section.options?.box ? "flex-start" : undefined}
 			borderStyle={section.options?.box ? "round" : undefined}
 			borderColor={section.options?.box ? "yellow" : undefined}
 		>
 			{displayContent.map((line, index) => (
-				<Box flexDirection="row" key={section.id + "_" + index} columnGap={1}>
-					{index === 0 && <Text color={prefixColor}>{prefix}</Text>}
+				<Box flexDirection="row" key={section.id + "_" + index} columnGap={0}>
+					{index === 0 && (
+						<Box flexShrink={0} marginRight={prefix.length === 0 ? 0 : 1}>
+							<Text color={prefixColor}>{prefix}</Text>
+						</Box>
+					)}
 					<Text>{line || " "}</Text>
 				</Box>
 			))}
