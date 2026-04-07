@@ -8,7 +8,17 @@ This coding-agent is a TypeScript implementation of an autonomous agent framewor
 
 It designed to be simple and modular. Also it is meant to be a starting point for including it into your own projects. Think of shadcn approach and copy it into your projects, just like I do.
 
-![Hello-World Demo](https://static.stepanrutz.com/cagent.gif)
+## Cagent is a terminal-based autonomous agent framework
+
+Choose your model and start chatting with the agent. It can execute tools, write files, run code, and more.
+
+![Hello-World Demo](https://static.stepanrutz.com/cagentmodels.gif)
+
+## Cagent uses the ink terminal UI
+
+Cagent uses the Ink terminal ui since version 1.0.8. This allows for a more interactive and visually appealing experience when running the agent in the terminal. The output is still abstracted into a single class and can be adapted to other 
+
+![Terminal UI Demo](https://static.stepanrutz.com/cagenttui.gif)
 
 Specialities include:
 
