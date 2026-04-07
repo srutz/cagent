@@ -1,6 +1,6 @@
 {
   "name": "cagent",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "It writes code, runs it, reads the output, and iterates.",
   "license": "MIT",
   "author": "stepan.rutz",
