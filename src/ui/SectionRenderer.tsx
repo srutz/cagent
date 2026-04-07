@@ -39,7 +39,7 @@ export function SectionRenderer({
 			prefix = ">";
 			break;
 		case "confirm":
-			prefix = "? ";
+			prefix = "?";
 			prefixColor = "yellow";
 			break;
 		case "echo":
